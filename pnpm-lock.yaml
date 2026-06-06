@@ -18,6 +18,19 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  examples/typescript:
+    dependencies:
+      '@bimpeai/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk-typescript
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.0
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/sdk-typescript:
     devDependencies:
       '@types/node':
@@ -2183,7 +2196,7 @@ snapshots:
 
   '@types/set-cookie-parser@2.4.10':
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 24.13.0
 
   '@types/statuses@2.0.6': {}
 
