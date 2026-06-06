@@ -56,4 +56,14 @@ export type {
   WorkflowSummary,
   WorkflowVisibility,
 } from './resources/workflows';
+export { Conversations, Messages } from './resources/conversations';
+export type {
+  Conversation,
+  ConversationChannel,
+  ListConversationsQuery,
+  ListMessagesQuery,
+  Message,
+  MessageAttachment,
+  SendMessageBody,
+} from './resources/conversations';
 export { VERSION } from './version';
