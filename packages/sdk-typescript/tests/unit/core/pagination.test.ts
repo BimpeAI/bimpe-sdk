@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Page } from '../../../src/core/pagination';
+import { Page, PagePromise } from '../../../src/core/pagination';
 import type { PaginationMeta } from '../../../src/core/types';
 
 const meta = (current: number, hasNext: boolean): PaginationMeta => ({
@@ -63,5 +63,28 @@ describe('Page', () => {
       if (item === 3) break;
     }
     expect(items).toEqual([1, 2, 3]);
+  });
+});
+
+describe('PagePromise', () => {
+  it('awaits to the first page', async () => {
+    const promise = new PagePromise<number>(() => fetchPage(1));
+    const page = await promise;
+    expect(page).toBeInstanceOf(Page);
+    expect(page.data).toEqual([1, 2]);
+  });
+
+  it('iterates items across all pages with for-await directly on the promise', async () => {
+    const promise = new PagePromise<number>(() => fetchPage(1));
+    const items: number[] = [];
+    for await (const item of promise) items.push(item);
+    expect(items).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('walks pages with .pages()', async () => {
+    const promise = new PagePromise<number>(() => fetchPage(1));
+    const seen: number[] = [];
+    for await (const p of promise.pages()) seen.push(p.meta?.current_page ?? -1);
+    expect(seen).toEqual([1, 2, 3]);
   });
 });

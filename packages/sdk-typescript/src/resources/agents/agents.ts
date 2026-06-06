@@ -1,4 +1,4 @@
-import { Page } from '../../core/pagination';
+import { Page, PagePromise } from '../../core/pagination';
 import type { ListQuery, RequestExecutor, RequestOptions } from '../../core/types';
 import { AgentActions } from './actions';
 import { AgentChannels } from './channels';
@@ -24,8 +24,8 @@ export class Agents {
     this.knowledgeBases = new AgentKnowledgeBases(client);
   }
 
-  list(query: ListQuery = {}): Promise<Page<Agent>> {
-    return this.fetchPage(query.page ?? 1, query);
+  list(query: ListQuery = {}): PagePromise<Agent> {
+    return new PagePromise(() => this.fetchPage(query.page ?? 1, query));
   }
 
   async create(body: CreateAgentBody, options: RequestOptions = {}): Promise<Agent> {

@@ -1,4 +1,4 @@
-import { Page } from '../../core/pagination';
+import { Page, PagePromise } from '../../core/pagination';
 import type { RequestExecutor, RequestOptions } from '../../core/types';
 import type { ListMessagesQuery, Message, SendMessageBody } from './types';
 
@@ -11,8 +11,8 @@ export class Messages {
     agentId: string,
     conversationId: string,
     query: ListMessagesQuery = {},
-  ): Promise<Page<Message>> {
-    return this.fetchPage(agentId, conversationId, query.page ?? 1, query);
+  ): PagePromise<Message> {
+    return new PagePromise(() => this.fetchPage(agentId, conversationId, query.page ?? 1, query));
   }
 
   async send(

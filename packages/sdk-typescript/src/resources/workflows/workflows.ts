@@ -1,4 +1,4 @@
-import { Page } from '../../core/pagination';
+import { Page, PagePromise } from '../../core/pagination';
 import type { RequestExecutor, RequestOptions } from '../../core/types';
 import type {
   CreateWorkflowBody,
@@ -13,8 +13,8 @@ type Client = RequestExecutor;
 export class Workflows {
   constructor(private readonly client: Client) {}
 
-  list(query: ListWorkflowsQuery = {}): Promise<Page<WorkflowSummary>> {
-    return this.fetchPage(query.page ?? 1, query);
+  list(query: ListWorkflowsQuery = {}): PagePromise<WorkflowSummary> {
+    return new PagePromise(() => this.fetchPage(query.page ?? 1, query));
   }
 
   async create(body: CreateWorkflowBody, options: RequestOptions = {}): Promise<Workflow> {

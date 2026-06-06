@@ -1,4 +1,4 @@
-import { Page } from '../../core/pagination';
+import { Page, PagePromise } from '../../core/pagination';
 import type { RequestExecutor } from '../../core/types';
 import { Messages } from './messages';
 import type { Conversation, ListConversationsQuery } from './types';
@@ -12,8 +12,8 @@ export class Conversations {
     this.messages = new Messages(client);
   }
 
-  list(agentId: string, query: ListConversationsQuery = {}): Promise<Page<Conversation>> {
-    return this.fetchPage(agentId, query.page ?? 1, query);
+  list(agentId: string, query: ListConversationsQuery = {}): PagePromise<Conversation> {
+    return new PagePromise(() => this.fetchPage(agentId, query.page ?? 1, query));
   }
 
   async retrieve(agentId: string, conversationId: string): Promise<Conversation> {
