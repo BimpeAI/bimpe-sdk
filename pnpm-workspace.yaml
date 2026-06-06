@@ -5,3 +5,4 @@ packages:
 allowBuilds:
   '@biomejs/biome': false
   esbuild: true
+  msw: false
