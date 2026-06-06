@@ -1,9 +1,9 @@
-import type { HttpClient } from '../../core/http-client';
 import { Page } from '../../core/pagination';
+import type { RequestExecutor } from '../../core/types';
 import { Messages } from './messages';
 import type { Conversation, ListConversationsQuery } from './types';
 
-type Client = Pick<HttpClient, 'request'>;
+type Client = RequestExecutor;
 
 export class Conversations {
   readonly messages: Messages;

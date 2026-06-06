@@ -1,9 +1,8 @@
-import type { HttpClient } from '../../core/http-client';
 import { Page } from '../../core/pagination';
-import type { RequestOptions } from '../../core/types';
+import type { RequestExecutor, RequestOptions } from '../../core/types';
 import type { ListMessagesQuery, Message, SendMessageBody } from './types';
 
-type Client = Pick<HttpClient, 'request'>;
+type Client = RequestExecutor;
 
 export class Messages {
   constructor(private readonly client: Client) {}

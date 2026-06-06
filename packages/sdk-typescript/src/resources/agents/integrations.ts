@@ -1,8 +1,8 @@
-import type { HttpClient } from '../../core/http-client';
+import type { RequestExecutor } from '../../core/types';
 import type { AgentIntegration } from './types';
 
 export class AgentIntegrations {
-  constructor(private readonly client: Pick<HttpClient, 'request'>) {}
+  constructor(private readonly client: RequestExecutor) {}
 
   async list(agentId: string): Promise<readonly AgentIntegration[]> {
     const res = await this.client.request<AgentIntegration[]>({

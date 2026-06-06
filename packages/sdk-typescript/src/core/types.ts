@@ -56,3 +56,11 @@ export interface Logger {
   debug(message: string, context?: Record<string, unknown>): void;
   warn(message: string, context?: Record<string, unknown>): void;
 }
+
+/**
+ * The slice of the transport that resources depend on. Depending on this rather
+ * than the concrete HttpClient keeps the transport class out of the public types.
+ */
+export interface RequestExecutor {
+  request<T>(spec: InternalRequestSpec & RequestOptions): Promise<ApiResponse<T>>;
+}

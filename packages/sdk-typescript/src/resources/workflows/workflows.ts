@@ -1,6 +1,5 @@
-import type { HttpClient } from '../../core/http-client';
 import { Page } from '../../core/pagination';
-import type { RequestOptions } from '../../core/types';
+import type { RequestExecutor, RequestOptions } from '../../core/types';
 import type {
   CreateWorkflowBody,
   ListWorkflowsQuery,
@@ -9,7 +8,7 @@ import type {
   WorkflowSummary,
 } from './types';
 
-type Client = Pick<HttpClient, 'request'>;
+type Client = RequestExecutor;
 
 export class Workflows {
   constructor(private readonly client: Client) {}

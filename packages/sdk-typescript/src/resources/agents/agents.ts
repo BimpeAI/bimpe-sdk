@@ -1,6 +1,5 @@
-import type { HttpClient } from '../../core/http-client';
 import { Page } from '../../core/pagination';
-import type { ListQuery, RequestOptions } from '../../core/types';
+import type { ListQuery, RequestExecutor, RequestOptions } from '../../core/types';
 import { AgentActions } from './actions';
 import { AgentChannels } from './channels';
 import { AgentConversationFlows } from './conversation-flows';
@@ -8,7 +7,7 @@ import { AgentIntegrations } from './integrations';
 import { AgentKnowledgeBases } from './knowledge-bases';
 import type { Agent, AgentDetail, CreateAgentBody, UpdateAgentBody } from './types';
 
-type Client = Pick<HttpClient, 'request'>;
+type Client = RequestExecutor;
 
 export class Agents {
   readonly integrations: AgentIntegrations;

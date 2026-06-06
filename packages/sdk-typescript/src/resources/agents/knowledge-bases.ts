@@ -1,5 +1,4 @@
-import type { HttpClient } from '../../core/http-client';
-import type { RequestOptions } from '../../core/types';
+import type { RequestExecutor, RequestOptions } from '../../core/types';
 import type {
   CreateKnowledgeBaseBody,
   KnowledgeBaseSummary,
@@ -7,7 +6,7 @@ import type {
 } from './types';
 
 export class AgentKnowledgeBases {
-  constructor(private readonly client: Pick<HttpClient, 'request'>) {}
+  constructor(private readonly client: RequestExecutor) {}
 
   async list(agentId: string): Promise<readonly KnowledgeBaseSummary[]> {
     const res = await this.client.request<KnowledgeBaseSummary[]>({
