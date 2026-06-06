@@ -25,6 +25,8 @@ jobs:
       # (no commit), build so the version is baked into the bundle, then publish
       # under the beta dist-tag.
       - run: pnpm changeset version --snapshot beta
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm build
       - run: pnpm changeset publish --no-git-tag --tag beta
         env:
