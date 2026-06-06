@@ -1,0 +1,33 @@
+name: Release (beta)
+
+on:
+  push:
+    branches: [staging]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  beta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 11 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '24', cache: 'pnpm', registry-url: 'https://registry.npmjs.org' }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      # Stamp a prerelease version like 0.1.0-beta-<sha> from the pending changesets
+      # (no commit), build so the version is baked into the bundle, then publish
+      # under the beta dist-tag.
+      - run: pnpm changeset version --snapshot beta
+      - run: pnpm build
+      - run: pnpm changeset publish --no-git-tag --tag beta
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
