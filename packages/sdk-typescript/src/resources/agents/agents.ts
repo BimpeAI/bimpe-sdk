@@ -5,6 +5,7 @@ import { AgentActions } from './actions';
 import { AgentChannels } from './channels';
 import { AgentConversationFlows } from './conversation-flows';
 import { AgentIntegrations } from './integrations';
+import { AgentKnowledgeBases } from './knowledge-bases';
 import type { Agent, AgentDetail, CreateAgentBody, UpdateAgentBody } from './types';
 
 type Client = Pick<HttpClient, 'request'>;
@@ -14,12 +15,14 @@ export class Agents {
   readonly channels: AgentChannels;
   readonly conversationFlows: AgentConversationFlows;
   readonly actions: AgentActions;
+  readonly knowledgeBases: AgentKnowledgeBases;
 
   constructor(private readonly client: Client) {
     this.integrations = new AgentIntegrations(client);
     this.channels = new AgentChannels(client);
     this.conversationFlows = new AgentConversationFlows(client);
     this.actions = new AgentActions(client);
+    this.knowledgeBases = new AgentKnowledgeBases(client);
   }
 
   list(query: ListQuery = {}): Promise<Page<Agent>> {

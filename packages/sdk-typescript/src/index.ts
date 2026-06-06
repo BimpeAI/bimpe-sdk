@@ -24,6 +24,7 @@ export {
   AgentChannels,
   AgentConversationFlows,
   AgentIntegrations,
+  AgentKnowledgeBases,
   Agents,
 } from './resources/agents';
 export type {

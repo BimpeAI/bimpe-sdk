@@ -3,6 +3,7 @@ export { Agents } from './agents';
 export { AgentChannels } from './channels';
 export { AgentConversationFlows } from './conversation-flows';
 export { AgentIntegrations } from './integrations';
+export { AgentKnowledgeBases } from './knowledge-bases';
 export type {
   Agent,
   AgentActionSummary,
