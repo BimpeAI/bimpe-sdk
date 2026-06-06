@@ -46,4 +46,14 @@ export type {
   UpdateAgentBody,
   UpdateKnowledgeBaseBody,
 } from './resources/agents';
+export { Workflows } from './resources/workflows';
+export type {
+  CreateWorkflowBody,
+  ListWorkflowsQuery,
+  UpdateWorkflowBody,
+  Workflow,
+  WorkflowScope,
+  WorkflowSummary,
+  WorkflowVisibility,
+} from './resources/workflows';
 export { VERSION } from './version';
