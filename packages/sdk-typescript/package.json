@@ -19,7 +19,7 @@
   "files": ["dist", "README.md", "LICENSE"],
   "engines": { "node": ">=24.0.0" },
   "scripts": {
-    "build": "tsup",
+    "build": "node scripts/sync-version.mjs && tsup",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
