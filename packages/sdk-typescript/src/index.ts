@@ -56,6 +56,8 @@ export type {
   WorkflowSummary,
   WorkflowVisibility,
 } from './resources/workflows';
+export { Calls } from './resources/calls';
+export type { Call } from './resources/calls';
 export { Conversations, Messages } from './resources/conversations';
 export type {
   Conversation,
