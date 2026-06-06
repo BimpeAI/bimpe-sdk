@@ -19,4 +19,24 @@ export {
 export type { FieldError } from './core/errors';
 export { Page } from './core/pagination';
 export type { ApiResponse, ListQuery, PaginationMeta, RequestOptions } from './core/types';
+export { Agents } from './resources/agents';
+export type {
+  Agent,
+  AgentActionSummary,
+  AgentChannel,
+  AgentConversationFlow,
+  AgentDetail,
+  AgentIntegration,
+  CreateAgentBody,
+  CreateKnowledgeBaseBody,
+  CreateKnowledgeBaseTextBody,
+  CreateKnowledgeBaseUrlBody,
+  IntegrationAction,
+  IntegrationConfigField,
+  KnowledgeBaseSummary,
+  Rule,
+  RuleInput,
+  UpdateAgentBody,
+  UpdateKnowledgeBaseBody,
+} from './resources/agents';
 export { VERSION } from './version';
