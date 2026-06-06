@@ -1,12 +1,26 @@
 import type { HttpClient } from '../../core/http-client';
 import { Page } from '../../core/pagination';
 import type { ListQuery, RequestOptions } from '../../core/types';
+import { AgentActions } from './actions';
+import { AgentChannels } from './channels';
+import { AgentConversationFlows } from './conversation-flows';
+import { AgentIntegrations } from './integrations';
 import type { Agent, AgentDetail, CreateAgentBody, UpdateAgentBody } from './types';
 
 type Client = Pick<HttpClient, 'request'>;
 
 export class Agents {
-  constructor(private readonly client: Client) {}
+  readonly integrations: AgentIntegrations;
+  readonly channels: AgentChannels;
+  readonly conversationFlows: AgentConversationFlows;
+  readonly actions: AgentActions;
+
+  constructor(private readonly client: Client) {
+    this.integrations = new AgentIntegrations(client);
+    this.channels = new AgentChannels(client);
+    this.conversationFlows = new AgentConversationFlows(client);
+    this.actions = new AgentActions(client);
+  }
 
   list(query: ListQuery = {}): Promise<Page<Agent>> {
     return this.fetchPage(query.page ?? 1, query);
