@@ -7,5 +7,6 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@bimpeai/examples-typescript"]
+  "ignore": ["@bimpeai/examples-typescript"],
+  "snapshot": { "useCalculatedVersion": true }
 }
