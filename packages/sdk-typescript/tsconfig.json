@@ -6,5 +6,6 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src/**/*", "tests/**/*", "*.config.ts"]
+  "include": ["src/**/*", "tests/**/*", "*.config.ts"],
+  "exclude": ["dist", "node_modules", "tests/smoke"]
 }
