@@ -1,0 +1,16 @@
+node_modules
+dist
+.turbo
+.cache
+*.tsbuildinfo
+coverage
+.DS_Store
+.env
+.env.*
+!.env.example
+.idea
+.vscode
+*.log
+.changeset/*.md
+!.changeset/config.json
+!.changeset/README.md
