@@ -98,4 +98,36 @@ describe('Messages.stream', () => {
     }
     expect(ids).toEqual([]);
   });
+
+  it('stops cleanly when the caller aborts mid-stream', async () => {
+    const controller = new AbortController();
+    // A body that delivers one message, then rejects the next read once aborted —
+    // mirroring how fetch tears down a streamed response body on abort.
+    const body = new ReadableStream<Uint8Array>({
+      start(c) {
+        c.enqueue(new TextEncoder().encode(msg('m_1')));
+      },
+      pull() {
+        return new Promise<void>((_, reject) => {
+          controller.signal.addEventListener(
+            'abort',
+            () => reject(new DOMException('aborted', 'AbortError')),
+            { once: true },
+          );
+        });
+      },
+    });
+    const response = new Response(body, {
+      status: 200,
+      headers: { 'content-type': 'text/event-stream' },
+    });
+    const messages = new Messages(makeTransport(vi.fn().mockResolvedValue(response)) as never);
+
+    const ids: string[] = [];
+    for await (const event of messages.stream('a_1', 'cv_1', { signal: controller.signal })) {
+      ids.push(event.id);
+      controller.abort();
+    }
+    expect(ids).toEqual(['m_1']);
+  });
 });
