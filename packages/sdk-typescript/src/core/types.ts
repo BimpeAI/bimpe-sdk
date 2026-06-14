@@ -64,3 +64,20 @@ export interface Logger {
 export interface RequestExecutor {
   request<T>(spec: InternalRequestSpec & RequestOptions): Promise<ApiResponse<T>>;
 }
+
+export interface StreamRequestSpec {
+  path: string;
+  query?: Record<string, string | number | boolean | undefined>;
+  signal?: AbortSignal;
+  headers?: Record<string, string>;
+}
+
+/**
+ * Opens a long-lived response (Server-Sent Events) without bearer auth, envelope
+ * unwrapping, or a request timeout. Returns the raw Response for the caller to read.
+ */
+export interface StreamExecutor {
+  stream(spec: StreamRequestSpec): Promise<Response>;
+}
+
+export type Transport = RequestExecutor & StreamExecutor;

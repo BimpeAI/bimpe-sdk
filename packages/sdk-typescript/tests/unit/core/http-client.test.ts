@@ -363,3 +363,71 @@ describe('HttpClient — request id and response shape', () => {
     );
   });
 });
+
+describe('HttpClient — stream', () => {
+  const sseBody = () =>
+    new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('event: message\ndata: {"id":"m_1"}\n\n'));
+        controller.close();
+      },
+    });
+
+  it('opens a GET stream with the event-stream Accept header and no bearer auth', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(sseBody(), { status: 200, headers: { 'content-type': 'text/event-stream' } }),
+      );
+    const c = new HttpClient({ apiKey: 'sk_test', fetch: fetchMock as unknown as typeof fetch });
+    await c.stream({
+      path: '/agents/a_1/conversations/cv_1/messages/stream',
+      query: { ticket: 't1' },
+    });
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new URL(url).searchParams.get('ticket')).toBe('t1');
+    expect(init.method).toBe('GET');
+    const headers = init.headers as Headers;
+    expect(headers.get('accept')).toBe('text/event-stream');
+    expect(headers.get('authorization')).toBeNull();
+    expect(headers.get('user-agent')).toMatch(/bimpeai-sdk-typescript/);
+  });
+
+  it('returns the raw Response so the body can be read', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(sseBody(), { status: 200, headers: { 'content-type': 'text/event-stream' } }),
+      );
+    const c = new HttpClient({ apiKey: 'sk_test', fetch: fetchMock as unknown as typeof fetch });
+    const res = await c.stream({ path: '/x' });
+    expect(res.body).toBeInstanceOf(ReadableStream);
+  });
+
+  it('maps a non-2xx open to a typed error', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ message: 'too many', code: 'too_many_requests' }), {
+        status: 429,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+    const c = new HttpClient({ apiKey: 'sk_test', fetch: fetchMock as unknown as typeof fetch });
+    await expect(c.stream({ path: '/x' })).rejects.toBeInstanceOf(RateLimitError);
+  });
+
+  it('does not attach an internal timeout signal when none is supplied', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(sseBody(), { status: 200, headers: { 'content-type': 'text/event-stream' } }),
+      );
+    const c = new HttpClient({
+      apiKey: 'sk_test',
+      fetch: fetchMock as unknown as typeof fetch,
+      timeout: 5,
+    });
+    await c.stream({ path: '/x' });
+    const init = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(init.signal).toBeUndefined();
+  });
+});
