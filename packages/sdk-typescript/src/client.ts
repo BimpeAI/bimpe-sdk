@@ -1,10 +1,5 @@
 import { HttpClient, type HttpClientConfig } from './core/http-client';
-import type {
-  ApiResponse,
-  InternalRequestSpec,
-  RequestExecutor,
-  RequestOptions,
-} from './core/types';
+import type { ApiResponse, InternalRequestSpec, RequestOptions, Transport } from './core/types';
 import { Agents } from './resources/agents';
 import { Calls } from './resources/calls';
 import { Conversations } from './resources/conversations';
@@ -17,7 +12,7 @@ export class BimpeAI {
   readonly workflows: Workflows;
   readonly conversations: Conversations;
   readonly calls: Calls;
-  private readonly http: RequestExecutor;
+  private readonly http: Transport;
 
   constructor(config: BimpeAIConfig) {
     this.http = new HttpClient(config);

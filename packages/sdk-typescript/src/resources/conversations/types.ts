@@ -52,3 +52,34 @@ export interface ListMessagesQuery {
   page?: number;
   limit?: number;
 }
+
+export interface StreamTicket {
+  readonly ticket: string;
+  readonly expires_in: number;
+}
+
+export type StreamMessageRole = 'user' | 'assistant' | 'restaurant_user' | 'customer';
+
+export interface StreamMessageEvent {
+  readonly id: string;
+  readonly conversation_id: string;
+  readonly role: StreamMessageRole;
+  readonly message: string | null;
+  readonly message_type: string | null;
+  readonly created_at: string;
+}
+
+export interface StreamHeartbeatEvent {
+  readonly ts: number;
+}
+
+export interface StreamOptions {
+  /** Abort to stop the stream. */
+  signal?: AbortSignal;
+  /** Replay messages created after this chat id or ISO-8601 timestamp. */
+  after?: string;
+  /** Re-open the stream after a drop, resuming from the last seen id. Default true. */
+  reconnect?: boolean;
+  /** Max consecutive reconnect attempts before giving up. Default 5. */
+  maxRetries?: number;
+}

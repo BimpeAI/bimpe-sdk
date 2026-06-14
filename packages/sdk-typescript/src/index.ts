@@ -67,5 +67,10 @@ export type {
   Message,
   MessageAttachment,
   SendMessageBody,
+  StreamHeartbeatEvent,
+  StreamMessageEvent,
+  StreamMessageRole,
+  StreamOptions,
+  StreamTicket,
 } from './resources/conversations';
 export { VERSION } from './version';
