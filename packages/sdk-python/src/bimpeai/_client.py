@@ -20,6 +20,10 @@ from ._models import ApiResponse
 from ._request import RequestSpec, StreamSpec
 from ._request_id import generate_request_id
 from ._retries import compute_backoff, should_retry
+from .resources.agents import Agents
+from .resources.calls import Calls
+from .resources.conversations import Conversations
+from .resources.workflows import Workflows
 
 _WRITE_METHODS = frozenset({"POST", "PATCH", "PUT", "DELETE"})
 
@@ -44,6 +48,10 @@ class BimpeAI(BaseClient):
         )
         self._http = http_client if http_client is not None else httpx.Client()
         self._owns_http = http_client is None
+        self.agents = Agents(self)
+        self.workflows = Workflows(self)
+        self.conversations = Conversations(self)
+        self.calls = Calls(self)
 
     def request(self, spec: RequestSpec) -> ApiResponse[Any]:
         url = self.build_url(spec.path)
