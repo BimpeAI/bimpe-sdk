@@ -71,6 +71,26 @@ await bimpe.conversations.messages.list(agentId, conversationId);
 await bimpe.conversations.messages.send(agentId, conversationId, { message: 'Hello' });
 ```
 
+### Streaming messages
+
+Stream new messages in a conversation in real time over Server-Sent Events. `stream()` issues a single-use ticket, opens the stream, and yields each message; heartbeats are handled internally, and a dropped connection automatically reconnects and resumes from the last message seen.
+
+```ts
+const controller = new AbortController();
+
+for await (const message of bimpe.conversations.messages.stream(agentId, conversationId, {
+  signal: controller.signal,
+})) {
+  console.log(message.role, message.message);
+}
+```
+
+Options: `after` (replay from a chat id or ISO timestamp), `reconnect` (default true), `maxRetries` (consecutive reconnects, default 5), and `signal`. Stop the stream by aborting the signal or `break`-ing the loop. The ticket step is also exposed on its own:
+
+```ts
+const { ticket, expires_in } = await bimpe.conversations.messages.streamTicket(agentId, conversationId);
+```
+
 ### Calls
 
 `calls.list()` is wired but the API answers with 501 today, so it throws `NotImplementedError`. It will start returning data once the endpoint ships, without an SDK change to your call site.
