@@ -70,7 +70,7 @@ class BaseClient:
 
     def parse_response(self, response: httpx.Response, request_id: str) -> ApiResponse[Any]:
         text = response.text
-        parsed = _safe_json(text) if text else None
+        parsed = safe_json(text) if text else None
         if not response.is_success:
             raise map_api_error(response.status_code, parsed, response.headers)
         unwrapped = unwrap_envelope(parsed)
@@ -87,7 +87,7 @@ def _build_user_agent() -> str:
     return f"bimpeai-python/{__version__} (Python/{platform.python_version()}; {platform.system()})"
 
 
-def _safe_json(text: str) -> Any:
+def safe_json(text: str) -> Any:
     try:
         return json.loads(text)
     except ValueError:
