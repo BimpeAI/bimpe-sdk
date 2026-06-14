@@ -1,5 +1,23 @@
 import type { ErrorBody } from './types';
 
+/** Known `code` values the API returns in an error envelope. */
+export type ErrorCode =
+  | 'validation_error'
+  | 'bad_request'
+  | 'unauthorized'
+  | 'api_key_missing'
+  | 'api_key_invalid'
+  | 'api_key_expired'
+  | 'insufficient_scope'
+  | 'forbidden'
+  | 'not_found'
+  | 'conflict'
+  | 'rate_limited'
+  | 'too_many_requests'
+  | 'not_implemented'
+  | 'agent_limit_reached'
+  | 'internal_error';
+
 export class BimpeAIError extends Error {
   constructor(message: string) {
     super(message);
