@@ -1,15 +1,31 @@
 from __future__ import annotations
 
+import asyncio
+import time
+from collections.abc import AsyncIterator, Iterator
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from typing import Any, Protocol
 
 import httpx
+from pydantic import ValidationError as PydanticValidationError
 from typing_extensions import Unpack
 
+from .._exceptions import BimpeAIError
 from .._models import ApiResponse
 from .._request import RequestOptions, RequestSpec, StreamSpec
+from .._retries import compute_backoff, should_retry
+from .._sse import aparse_sse, parse_sse
 from ..pagination import AsyncPage, Page
-from ..types.conversations import Conversation, ConversationChannel, Message, SendMessageBody
+from ..types.conversations import (
+    Conversation,
+    ConversationChannel,
+    Message,
+    SendMessageBody,
+    StreamMessageEvent,
+    StreamTicket,
+)
+
+_DEFAULT_STREAM_RETRIES = 5
 
 
 class SyncStreamTransport(Protocol):
@@ -62,6 +78,27 @@ def _send_message_spec(
     )
 
 
+def _stream_ticket_spec(
+    agent_id: str, conversation_id: str, options: RequestOptions
+) -> RequestSpec:
+    return RequestSpec(
+        method="POST",
+        path=f"/agents/{agent_id}/conversations/{conversation_id}/stream-ticket",
+        options=options,
+    )
+
+
+def _stream_path(agent_id: str, conversation_id: str) -> str:
+    return f"/agents/{agent_id}/conversations/{conversation_id}/messages/stream"
+
+
+def _parse_stream_message(data: str) -> StreamMessageEvent | None:
+    try:
+        return StreamMessageEvent.model_validate_json(data)
+    except PydanticValidationError:
+        return None
+
+
 class Messages:
     def __init__(self, client: SyncStreamTransport) -> None:
         self._client = client
@@ -99,6 +136,68 @@ class Messages:
             _send_message_spec(agent_id, conversation_id, dict(body), options)
         )
         return Message.model_validate(resp.data)
+
+    def stream_ticket(
+        self,
+        agent_id: str,
+        conversation_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> StreamTicket:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = self._client.request(_stream_ticket_spec(agent_id, conversation_id, options))
+        return StreamTicket.model_validate(resp.data)
+
+    def stream(
+        self,
+        agent_id: str,
+        conversation_id: str,
+        *,
+        after: str | None = None,
+        reconnect: bool = True,
+        max_retries: int = _DEFAULT_STREAM_RETRIES,
+        timeout: float | None = None,
+    ) -> Iterator[StreamMessageEvent]:
+        current_after = after
+        attempt = 0
+        path = _stream_path(agent_id, conversation_id)
+        while True:
+            try:
+                ticket = self.stream_ticket(agent_id, conversation_id).ticket
+                query: dict[str, Any] = {"ticket": ticket}
+                if current_after is not None:
+                    query["after"] = current_after
+                with self._client.stream(
+                    StreamSpec(path=path, query=query, timeout=timeout)
+                ) as response:
+                    for event in parse_sse(response.iter_bytes()):
+                        if event.event != "message":
+                            continue
+                        message = _parse_stream_message(event.data)
+                        if message is None:
+                            continue
+                        if event.id:
+                            current_after = event.id
+                        attempt = 0
+                        yield message
+            except BimpeAIError as error:
+                if not reconnect or not should_retry(error, attempt, max_retries):
+                    raise
+                time.sleep(compute_backoff(attempt))
+                attempt += 1
+                continue
+            if not reconnect or attempt >= max_retries:
+                return
+            time.sleep(compute_backoff(attempt))
+            attempt += 1
 
 
 class Conversations:
@@ -168,6 +267,68 @@ class AsyncMessages:
             _send_message_spec(agent_id, conversation_id, dict(body), options)
         )
         return Message.model_validate(resp.data)
+
+    async def stream_ticket(
+        self,
+        agent_id: str,
+        conversation_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> StreamTicket:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = await self._client.request(_stream_ticket_spec(agent_id, conversation_id, options))
+        return StreamTicket.model_validate(resp.data)
+
+    async def stream(
+        self,
+        agent_id: str,
+        conversation_id: str,
+        *,
+        after: str | None = None,
+        reconnect: bool = True,
+        max_retries: int = _DEFAULT_STREAM_RETRIES,
+        timeout: float | None = None,
+    ) -> AsyncIterator[StreamMessageEvent]:
+        current_after = after
+        attempt = 0
+        path = _stream_path(agent_id, conversation_id)
+        while True:
+            try:
+                ticket = (await self.stream_ticket(agent_id, conversation_id)).ticket
+                query: dict[str, Any] = {"ticket": ticket}
+                if current_after is not None:
+                    query["after"] = current_after
+                async with self._client.stream(
+                    StreamSpec(path=path, query=query, timeout=timeout)
+                ) as response:
+                    async for event in aparse_sse(response.aiter_bytes()):
+                        if event.event != "message":
+                            continue
+                        message = _parse_stream_message(event.data)
+                        if message is None:
+                            continue
+                        if event.id:
+                            current_after = event.id
+                        attempt = 0
+                        yield message
+            except BimpeAIError as error:
+                if not reconnect or not should_retry(error, attempt, max_retries):
+                    raise
+                await asyncio.sleep(compute_backoff(attempt))
+                attempt += 1
+                continue
+            if not reconnect or attempt >= max_retries:
+                return
+            await asyncio.sleep(compute_backoff(attempt))
+            attempt += 1
 
 
 class AsyncConversations:
