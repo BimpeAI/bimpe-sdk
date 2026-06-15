@@ -18,7 +18,7 @@ def test_requires_api_key() -> None:
 
 def test_build_url_and_params() -> None:
     c = client()
-    assert c.build_url("/agents") == "https://api.bimpeai.com/api/v1/console/agents"
+    assert c.build_url("/agents") == "https://api.bimpe.ai/api/v1/console/agents"
     assert c.clean_params({"page": 1, "search": None, "flag": True}) == {
         "page": "1",
         "flag": "true",

@@ -11,7 +11,7 @@ from ._models import ApiResponse, unwrap_envelope
 from ._version import __version__
 
 API_PATH_PREFIX = "/api/v1/console"
-DEFAULT_BASE_URL = "https://api.bimpeai.com"
+DEFAULT_BASE_URL = "https://api.bimpe.ai"
 DEFAULT_TIMEOUT = 30.0
 DEFAULT_MAX_RETRIES = 2
 

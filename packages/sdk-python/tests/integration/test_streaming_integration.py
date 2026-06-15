@@ -3,7 +3,7 @@ import respx
 
 from bimpeai import AsyncBimpeAI, BimpeAI
 
-BASE = "https://api.bimpeai.com/api/v1/console"
+BASE = "https://api.bimpe.ai/api/v1/console"
 TICKET = f"{BASE}/agents/a_1/conversations/c_1/stream-ticket"
 STREAM = f"{BASE}/agents/a_1/conversations/c_1/messages/stream"
 

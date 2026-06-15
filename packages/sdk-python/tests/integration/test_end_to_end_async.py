@@ -4,7 +4,7 @@ import respx
 
 from bimpeai import AsyncBimpeAI, AuthenticationError
 
-BASE = "https://api.bimpeai.com/api/v1/console"
+BASE = "https://api.bimpe.ai/api/v1/console"
 
 
 def agent(id_: str) -> dict[str, object]:

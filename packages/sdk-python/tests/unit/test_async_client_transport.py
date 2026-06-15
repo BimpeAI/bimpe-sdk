@@ -8,7 +8,7 @@ from bimpeai._async_client import AsyncBimpeAI
 from bimpeai._exceptions import APITimeoutError, AuthenticationError, RateLimitError
 from bimpeai._request import RequestSpec, StreamSpec
 
-BASE = "https://api.bimpeai.com/api/v1/console"
+BASE = "https://api.bimpe.ai/api/v1/console"
 
 
 def make() -> AsyncBimpeAI:

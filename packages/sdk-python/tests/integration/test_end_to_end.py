@@ -6,7 +6,7 @@ import respx
 
 from bimpeai import AuthenticationError, BimpeAI, RateLimitError
 
-BASE = "https://api.bimpeai.com/api/v1/console"
+BASE = "https://api.bimpe.ai/api/v1/console"
 
 
 def meta(current: int, has_next: bool) -> dict[str, object]:
