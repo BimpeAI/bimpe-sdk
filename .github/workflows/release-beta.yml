@@ -21,14 +21,28 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      # Only publish a beta when changesets are pending. Without this guard a
+      # staging branch sitting on an already-released version (no changesets)
+      # would republish that exact version under the beta tag.
+      - id: changesets
+        run: |
+          if [ -n "$(find .changeset -name '*.md' ! -name 'README.md')" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "No pending changesets; skipping beta publish." >> "$GITHUB_STEP_SUMMARY"
+          fi
       # Stamp a prerelease version like 0.1.0-beta-<sha> from the pending changesets
       # (no commit), build so the version is baked into the bundle, then publish
       # under the beta dist-tag.
-      - run: pnpm changeset version --snapshot beta
+      - if: steps.changesets.outputs.present == 'true'
+        run: pnpm changeset version --snapshot beta
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: pnpm build
-      - run: pnpm changeset publish --no-git-tag --tag beta
+      - if: steps.changesets.outputs.present == 'true'
+        run: pnpm build
+      - if: steps.changesets.outputs.present == 'true'
+        run: pnpm changeset publish --no-git-tag --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
