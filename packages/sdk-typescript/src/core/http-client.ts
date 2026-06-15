@@ -21,7 +21,7 @@ import type {
   StreamRequestSpec,
 } from './types';
 
-const DEFAULT_BASE_URL = 'https://api.bimpeai.com';
+const DEFAULT_BASE_URL = 'https://api.bimpe.ai';
 const API_PATH_PREFIX = '/api/v1/console';
 
 export interface HttpClientConfig {
