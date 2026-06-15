@@ -1,5 +1,11 @@
 # @bimpeai/sdk
 
+## 0.1.1
+
+### Patch Changes
+
+- [#6](https://github.com/BimpeAI/bimpe-sdk/pull/6) [`03c579e`](https://github.com/BimpeAI/bimpe-sdk/commit/03c579e22347f6df0710d45150e0d3286ce63eab) Thanks [@Theshedman](https://github.com/Theshedman)! - Document installing prereleases from the `beta` dist-tag.
+
 ## 0.1.0
 
 ### Minor Changes
