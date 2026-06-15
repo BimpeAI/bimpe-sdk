@@ -246,6 +246,8 @@ Every request body and response is exported as a type, so you can annotate your 
 
 Pre-1.0, minor versions may include breaking changes. See `CHANGELOG.md` for each release.
 
+Prereleases are published from the `staging` branch under the `beta` dist-tag. Install the latest prerelease with `pnpm add @bimpeai/sdk@beta`.
+
 ## License
 
 MIT
