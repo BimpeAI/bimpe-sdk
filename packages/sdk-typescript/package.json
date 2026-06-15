@@ -1,6 +1,6 @@
 {
   "name": "@bimpeai/sdk",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Official TypeScript SDK for the BimpeAI Agent Console API",
   "license": "MIT",
   "type": "module",
@@ -16,8 +16,14 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "LICENSE"],
-  "engines": { "node": ">=24.0.0" },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "build": "node scripts/sync-version.mjs && tsup",
     "typecheck": "tsc --noEmit",
@@ -44,5 +50,11 @@
     "url": "https://github.com/BimpeAI/bimpe-sdk.git",
     "directory": "packages/sdk-typescript"
   },
-  "keywords": ["bimpeai", "sdk", "agents", "ai", "typescript"]
+  "keywords": [
+    "bimpeai",
+    "sdk",
+    "agents",
+    "ai",
+    "typescript"
+  ]
 }
