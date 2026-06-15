@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { ErrorCode } from '../../../src/core/errors';
 import {
   ApiError,
   AuthenticationError,
@@ -94,6 +95,14 @@ describe('mapApiError', () => {
   it('maps 409 to ConflictError', () => {
     const err = mapApiError(409, { message: 'conflict' }, h());
     expect(err).toBeInstanceOf(ConflictError);
+  });
+
+  it('maps 429 with code too_many_requests to RateLimitError and preserves the code', () => {
+    const err = mapApiError(429, { message: 'too many', code: 'too_many_requests' }, h());
+    expect(err).toBeInstanceOf(RateLimitError);
+    expect(err.code).toBe('too_many_requests');
+    const code: ErrorCode = 'too_many_requests';
+    expect(code).toBe(err.code);
   });
 
   it('maps 429 to RateLimitError with parsed headers', () => {

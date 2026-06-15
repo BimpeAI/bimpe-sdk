@@ -12,9 +12,16 @@ import { mergeHeaders } from './headers';
 import { resolveIdempotencyKey } from './idempotency';
 import { generateRequestId } from './request-id';
 import { DEFAULT_BASE_MS, DEFAULT_MAX_BACKOFF_MS, computeBackoff, shouldRetry } from './retries';
-import type { ApiResponse, Fetch, InternalRequestSpec, Logger, RequestOptions } from './types';
+import type {
+  ApiResponse,
+  Fetch,
+  InternalRequestSpec,
+  Logger,
+  RequestOptions,
+  StreamRequestSpec,
+} from './types';
 
-const DEFAULT_BASE_URL = 'https://api.bimpeai.com';
+const DEFAULT_BASE_URL = 'https://api.bimpe.ai';
 const API_PATH_PREFIX = '/api/v1/console';
 
 export interface HttpClientConfig {
@@ -145,6 +152,33 @@ export class HttpClient {
       status: response.status,
       headers: response.headers,
     };
+  }
+
+  async stream(spec: StreamRequestSpec): Promise<Response> {
+    const url = this.buildUrl(spec.path, spec.query);
+    const headers = mergeHeaders(
+      this.defaultHeaders,
+      { Accept: 'text/event-stream', 'User-Agent': this.userAgent },
+      spec.headers,
+    );
+
+    let response: Response;
+    try {
+      response = await this.fetchImpl(url, {
+        method: 'GET',
+        headers,
+        ...(spec.signal ? { signal: spec.signal } : {}),
+      });
+    } catch (cause) {
+      if (isAbortError(cause)) throw new ConnectionError('stream aborted', cause);
+      throw new ConnectionError('network error', cause);
+    }
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw mapApiError(response.status, text.length ? safeJson(text) : null, response.headers);
+    }
+    return response;
   }
 
   private buildUrl(path: string, query?: InternalRequestSpec['query']): string {

@@ -16,7 +16,7 @@ export {
   UserError,
   ValidationError,
 } from './core/errors';
-export type { FieldError } from './core/errors';
+export type { ErrorCode, FieldError } from './core/errors';
 export { Page, PagePromise } from './core/pagination';
 export type { ApiResponse, ListQuery, PaginationMeta, RequestOptions } from './core/types';
 export {
@@ -67,5 +67,10 @@ export type {
   Message,
   MessageAttachment,
   SendMessageBody,
+  StreamHeartbeatEvent,
+  StreamMessageEvent,
+  StreamMessageRole,
+  StreamOptions,
+  StreamTicket,
 } from './resources/conversations';
 export { VERSION } from './version';

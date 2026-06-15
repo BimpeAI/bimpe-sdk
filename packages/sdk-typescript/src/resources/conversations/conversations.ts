@@ -1,9 +1,9 @@
 import { Page, PagePromise } from '../../core/pagination';
-import type { RequestExecutor } from '../../core/types';
+import type { Transport } from '../../core/types';
 import { Messages } from './messages';
 import type { Conversation, ListConversationsQuery } from './types';
 
-type Client = RequestExecutor;
+type Client = Transport;
 
 export class Conversations {
   readonly messages: Messages;
