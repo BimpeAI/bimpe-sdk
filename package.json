@@ -13,7 +13,7 @@
     "format": "biome format --write .",
     "typecheck": "pnpm -r --filter './packages/*' typecheck",
     "changeset": "changeset",
-    "version": "changeset version",
+    "version": "changeset version && biome format --write .",
     "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
