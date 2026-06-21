@@ -28,16 +28,19 @@ describe('Messages resource', () => {
         },
       ),
     );
-    const page = await make(requestImpl).list('a_1', 'cv_1');
+    const page = await make(requestImpl).list('a_1', 'cv_1', {
+      search: 'refund',
+      sort: '-created_at',
+    });
     expect(page).toBeInstanceOf(Page);
     expect(requestImpl).toHaveBeenCalledWith({
       method: 'GET',
       path: '/agents/a_1/conversations/cv_1/messages',
-      query: { page: 1, limit: undefined },
+      query: { page: 1, limit: undefined, search: 'refund', sort: '-created_at' },
     });
   });
 
-  it('send() POSTs a message with attachments and an idempotencyKey', async () => {
+  it('send() POSTs a message with a role and an idempotencyKey', async () => {
     const requestImpl = vi.fn().mockResolvedValue(
       okResponse({
         id: 'm_2',
@@ -50,15 +53,35 @@ describe('Messages resource', () => {
     const m = await make(requestImpl).send(
       'a_1',
       'cv_1',
-      { message: 'Hi', attachments: [{ type: 'image', url: 'https://x' }] },
+      { message: 'Hi', role: 'assistant' },
       { idempotencyKey: 'op-1' },
     );
     expect(m.id).toBe('m_2');
     expect(requestImpl).toHaveBeenCalledWith({
       method: 'POST',
       path: '/agents/a_1/conversations/cv_1/messages',
-      body: { message: 'Hi', attachments: [{ type: 'image', url: 'https://x' }] },
+      body: { message: 'Hi', role: 'assistant' },
       idempotencyKey: 'op-1',
+    });
+  });
+
+  it('retrieve() GETs a single message and returns it with attachments', async () => {
+    const requestImpl = vi.fn().mockResolvedValue(
+      okResponse({
+        id: 'm_3',
+        role: 'user',
+        message: 'see attachment',
+        message_type: 'text',
+        created_at: 'now',
+        attachments: [{ type: 'image', url: 'https://x' }],
+      }),
+    );
+    const m = await make(requestImpl).retrieve('a_1', 'cv_1', 'm_3');
+    expect(m.id).toBe('m_3');
+    expect(m.attachments?.[0]?.url).toBe('https://x');
+    expect(requestImpl).toHaveBeenCalledWith({
+      method: 'GET',
+      path: '/agents/a_1/conversations/cv_1/messages/m_3',
     });
   });
 });

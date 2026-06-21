@@ -35,13 +35,29 @@ describe('Workflows resource', () => {
   });
 
   it('create() POSTs /workflows', async () => {
-    const requestImpl = vi.fn().mockResolvedValue(okResponse({ id: 'w_1' }));
-    const w = await make(requestImpl).create({ name: 'Triage' }, { idempotencyKey: 'op-1' });
+    const requestImpl = vi.fn().mockResolvedValue(okResponse({ id: 'w_1', name: 'Triage' }));
+    const body = { name: 'Triage', system_prompt: 'You triage support requests.' };
+    const w = await make(requestImpl).create(body, { idempotencyKey: 'op-1' });
     expect(w.id).toBe('w_1');
     expect(requestImpl).toHaveBeenCalledWith({
       method: 'POST',
       path: '/workflows',
-      body: { name: 'Triage' },
+      body,
+      idempotencyKey: 'op-1',
+    });
+  });
+
+  it('clone() POSTs /workflows/clone with the source workflow id', async () => {
+    const requestImpl = vi.fn().mockResolvedValue(okResponse({ id: 'w_2', name: 'Triage copy' }));
+    const w = await make(requestImpl).clone(
+      { source_workflow_id: 'w_1' },
+      { idempotencyKey: 'op-1' },
+    );
+    expect(w.id).toBe('w_2');
+    expect(requestImpl).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/workflows/clone',
+      body: { source_workflow_id: 'w_1' },
       idempotencyKey: 'op-1',
     });
   });

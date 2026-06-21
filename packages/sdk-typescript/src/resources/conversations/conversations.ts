@@ -1,7 +1,15 @@
 import { Page, PagePromise } from '../../core/pagination';
-import type { Transport } from '../../core/types';
+import type { RequestOptions, Transport } from '../../core/types';
 import { Messages } from './messages';
-import type { Conversation, ListConversationsQuery } from './types';
+import type {
+  Conversation,
+  ConversationAiStatus,
+  ConversationDetail,
+  CreateConversationMessageBody,
+  ListConversationsQuery,
+  Message,
+  SetAiStatusBody,
+} from './types';
 
 type Client = Transport;
 
@@ -16,10 +24,39 @@ export class Conversations {
     return new PagePromise(() => this.fetchPage(agentId, query.page ?? 1, query));
   }
 
-  async retrieve(agentId: string, conversationId: string): Promise<Conversation> {
-    const res = await this.client.request<Conversation>({
+  async retrieve(agentId: string, conversationId: string): Promise<ConversationDetail> {
+    const res = await this.client.request<ConversationDetail>({
       method: 'GET',
       path: `/agents/${agentId}/conversations/${conversationId}`,
+    });
+    return res.data;
+  }
+
+  async send(
+    agentId: string,
+    body: CreateConversationMessageBody,
+    options: RequestOptions = {},
+  ): Promise<Message> {
+    const res = await this.client.request<Message>({
+      method: 'POST',
+      path: `/agents/${agentId}/conversations/messages`,
+      body,
+      ...options,
+    });
+    return res.data;
+  }
+
+  async setAiStatus(
+    agentId: string,
+    conversationId: string,
+    body: SetAiStatusBody,
+    options: RequestOptions = {},
+  ): Promise<ConversationAiStatus> {
+    const res = await this.client.request<ConversationAiStatus>({
+      method: 'PATCH',
+      path: `/agents/${agentId}/conversations/${conversationId}/ai-status`,
+      body,
+      ...options,
     });
     return res.data;
   }
@@ -32,7 +69,16 @@ export class Conversations {
     const res = await this.client.request<Conversation[]>({
       method: 'GET',
       path: `/agents/${agentId}/conversations`,
-      query: { page, limit: query.limit, search: query.search, channel: query.channel },
+      query: {
+        page,
+        limit: query.limit,
+        search: query.search,
+        sort: query.sort,
+        channel: query.channel,
+        is_test_channel: query.is_test_channel,
+        is_ai_chat_paused: query.is_ai_chat_paused,
+        needs_attention: query.needs_attention,
+      },
     });
     return new Page<Conversation>({
       data: res.data,

@@ -1,15 +1,11 @@
 import type { RequestExecutor, RequestOptions } from '../../core/types';
-import type {
-  CreateKnowledgeBaseBody,
-  KnowledgeBaseSummary,
-  UpdateKnowledgeBaseBody,
-} from './types';
+import type { CreateKnowledgeBaseBody, KnowledgeBaseItem, UpdateKnowledgeBaseBody } from './types';
 
 export class AgentKnowledgeBases {
   constructor(private readonly client: RequestExecutor) {}
 
-  async list(agentId: string): Promise<readonly KnowledgeBaseSummary[]> {
-    const res = await this.client.request<KnowledgeBaseSummary[]>({
+  async list(agentId: string): Promise<readonly KnowledgeBaseItem[]> {
+    const res = await this.client.request<KnowledgeBaseItem[]>({
       method: 'GET',
       path: `/agents/${agentId}/knowledge_bases`,
     });
@@ -20,8 +16,8 @@ export class AgentKnowledgeBases {
     agentId: string,
     body: CreateKnowledgeBaseBody,
     options: RequestOptions = {},
-  ): Promise<KnowledgeBaseSummary> {
-    const res = await this.client.request<KnowledgeBaseSummary>({
+  ): Promise<KnowledgeBaseItem> {
+    const res = await this.client.request<KnowledgeBaseItem>({
       method: 'POST',
       path: `/agents/${agentId}/knowledge_bases`,
       body,
@@ -34,8 +30,8 @@ export class AgentKnowledgeBases {
     agentId: string,
     kbId: string,
     body: UpdateKnowledgeBaseBody,
-  ): Promise<KnowledgeBaseSummary> {
-    const res = await this.client.request<KnowledgeBaseSummary>({
+  ): Promise<KnowledgeBaseItem> {
+    const res = await this.client.request<KnowledgeBaseItem>({
       method: 'PATCH',
       path: `/agents/${agentId}/knowledge_bases/${kbId}`,
       body,
