@@ -36,6 +36,14 @@ def update_agent_spec(agent_id: str, body: dict[str, Any]) -> RequestSpec:
     return RequestSpec(method="PATCH", path=f"/agents/{agent_id}", body=dict(body))
 
 
+def update_agent_live_status_spec(agent_id: str, body: dict[str, Any]) -> RequestSpec:
+    return RequestSpec(method="PATCH", path=f"/agents/{agent_id}/live-status", body=dict(body))
+
+
+def bulk_agent_actions_spec(agent_id: str, action: str, body: dict[str, Any]) -> RequestSpec:
+    return RequestSpec(method="POST", path=f"/agents/{agent_id}/actions/{action}", body=dict(body))
+
+
 def list_agent_subresource_spec(agent_id: str, name: str) -> RequestSpec:
     return RequestSpec(method="GET", path=f"/agents/{agent_id}/{name}")
 

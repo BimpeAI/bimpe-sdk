@@ -1,7 +1,15 @@
 import { Page, PagePromise } from '../../core/pagination';
-import type { Transport } from '../../core/types';
+import type { RequestOptions, Transport } from '../../core/types';
 import { Messages } from './messages';
-import type { Conversation, ListConversationsQuery } from './types';
+import type {
+  Conversation,
+  ConversationListItem,
+  CreateOrSendMessageBody,
+  CreateOrSendMessageResponse,
+  ListConversationsQuery,
+  UpdateAiStatusBody,
+  UpdateAiStatusResponse,
+} from './types';
 
 type Client = Transport;
 
@@ -12,7 +20,7 @@ export class Conversations {
     this.messages = new Messages(client);
   }
 
-  list(agentId: string, query: ListConversationsQuery = {}): PagePromise<Conversation> {
+  list(agentId: string, query: ListConversationsQuery = {}): PagePromise<ConversationListItem> {
     return new PagePromise(() => this.fetchPage(agentId, query.page ?? 1, query));
   }
 
@@ -24,17 +32,52 @@ export class Conversations {
     return res.data;
   }
 
+  async createOrSendMessage(
+    agentId: string,
+    body: CreateOrSendMessageBody,
+    options: RequestOptions = {},
+  ): Promise<CreateOrSendMessageResponse> {
+    const res = await this.client.request<CreateOrSendMessageResponse>({
+      method: 'POST',
+      path: `/agents/${agentId}/conversations/messages`,
+      body,
+      ...options,
+    });
+    return res.data;
+  }
+
+  async updateAiStatus(
+    agentId: string,
+    conversationId: string,
+    body: UpdateAiStatusBody,
+  ): Promise<UpdateAiStatusResponse> {
+    const res = await this.client.request<UpdateAiStatusResponse>({
+      method: 'PATCH',
+      path: `/agents/${agentId}/conversations/${conversationId}/ai-status`,
+      body,
+    });
+    return res.data;
+  }
+
   private async fetchPage(
     agentId: string,
     page: number,
     query: ListConversationsQuery,
-  ): Promise<Page<Conversation>> {
-    const res = await this.client.request<Conversation[]>({
+  ): Promise<Page<ConversationListItem>> {
+    const res = await this.client.request<ConversationListItem[]>({
       method: 'GET',
       path: `/agents/${agentId}/conversations`,
-      query: { page, limit: query.limit, search: query.search, channel: query.channel },
+      query: {
+        page,
+        limit: query.limit,
+        search: query.search,
+        channel: query.channel,
+        is_test_channel: query.is_test_channel,
+        is_ai_chat_paused: query.is_ai_chat_paused,
+        needs_attention: query.needs_attention,
+      },
     });
-    return new Page<Conversation>({
+    return new Page<ConversationListItem>({
       data: res.data,
       meta: res.meta,
       requestId: res.requestId,

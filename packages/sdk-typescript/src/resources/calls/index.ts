@@ -1,2 +1,2 @@
 export { Calls } from './calls';
-export type { Call } from './types';
+export type { Call, CallsNotImplementedResponse, MakeCallBody, QueueCallBody } from './types';

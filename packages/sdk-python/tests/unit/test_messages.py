@@ -35,7 +35,7 @@ def test_list_messages_path() -> None:
     assert client.specs[-1].query == {"page": 1, "limit": None}
 
 
-def test_send_message() -> None:
+def test_send_message_with_role() -> None:
     client = FakeSync(
         {
             "id": "m_2",
@@ -45,10 +45,31 @@ def test_send_message() -> None:
             "created_at": "t",
         }
     )
-    msg = Messages(client).send("a_1", "cv_1", message="Hi", idempotency_key="op-1")
+    msg = Messages(client).send(
+        "a_1", "cv_1", message="Hi", role="assistant", idempotency_key="op-1"
+    )
     assert msg.id == "m_2"
     spec = client.specs[-1]
     assert spec.method == "POST"
     assert spec.path == "/agents/a_1/conversations/cv_1/messages"
-    assert spec.body == {"message": "Hi"}
+    assert spec.body == {"message": "Hi", "role": "assistant"}
     assert spec.options.idempotency_key == "op-1"
+
+
+def test_retrieve_message() -> None:
+    client = FakeSync(
+        {
+            "id": "m_1",
+            "role": "user",
+            "message": "hi",
+            "message_type": "text",
+            "created_at": "t",
+            "attachments": [{"type": "image", "url": "https://x"}],
+        }
+    )
+    msg = Messages(client).retrieve("a_1", "cv_1", "m_1")
+    assert msg.id == "m_1"
+    assert client.specs[-1] == RequestSpec(
+        method="GET",
+        path="/agents/a_1/conversations/cv_1/messages/m_1",
+    )

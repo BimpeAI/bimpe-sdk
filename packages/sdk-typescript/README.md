@@ -39,20 +39,23 @@ The client exposes four resources: `agents`, `workflows`, `conversations`, and `
 
 ```ts
 await bimpe.agents.list({ page: 2, limit: 50, search: 'support', sort: '-created_at' });
-const agent = await bimpe.agents.create({ name: 'Support bot' }, { idempotencyKey: 'op-1' });
+const agent = await bimpe.agents.create(
+  { workflow_id: 'wf_abc', name: 'Support bot', description: 'Tier 1 support' },
+  { idempotencyKey: 'op-1' },
+);
 const detail = await bimpe.agents.retrieve(agent.id);
 await bimpe.agents.update(agent.id, { description: 'Updated' });
+await bimpe.agents.updateLiveStatus(agent.id, { status: 'live' });
 ```
 
-`list` returns a `PagePromise<Agent>`. `create` takes `CreateAgentBody` (only `name` is required) and returns an `Agent`; `update` takes a partial `UpdateAgentBody` and also returns an `Agent`. `retrieve` returns an `AgentDetail`, which is an `Agent` plus the agent's integrations, channels, conversation flows, actions, and knowledge bases inlined. Only `create` accepts per-call `RequestOptions`.
-
-The read-only sub-resources each return an array, not a page.
+`list` returns a `PagePromise<Agent>`. `create` requires `workflow_id`, `name`, and `description`, and returns an `AgentCreateResponse` (includes optional nested `workflow`). `retrieve` returns an `AgentDetail` with `integrations`, `channels`, and `knowledge_bases` summaries. Only `create` and message sends accept per-call `RequestOptions` on writes where noted.
 
 ```ts
 await bimpe.agents.integrations.list(agentId);
 await bimpe.agents.channels.list(agentId);
-await bimpe.agents.conversationFlows.list(agentId);
 await bimpe.agents.actions.list(agentId);
+await bimpe.agents.actions.enable(agentId, { action_ids: ['ac_1'] });
+await bimpe.agents.actions.disable(agentId, { action_ids: ['ac_1'] });
 ```
 
 Knowledge bases support full CRUD. The create body is a text source or a URL source, told apart by its `type`.
@@ -68,26 +71,43 @@ await bimpe.agents.knowledgeBases.delete(agentId, kbId);
 ### Workflows
 
 ```ts
-await bimpe.workflows.list({ scope: 'public', search: 'triage', sort: '-created_at' });
-const workflow = await bimpe.workflows.create({ name: 'Triage' }, { idempotencyKey: 'op-2' });
+await bimpe.workflows.list({ scope: 'accessible', search: 'triage', sort: '-created_at' });
+const workflow = await bimpe.workflows.create(
+  { name: 'Triage', system_prompt: 'You are helpful…' },
+  { idempotencyKey: 'op-2' },
+);
+const cloned = await bimpe.workflows.clone({ source_workflow_id: workflow.id });
 await bimpe.workflows.retrieve(workflow.id);
 await bimpe.workflows.update(workflow.id, { tags: ['v2'] });
 await bimpe.workflows.delete(workflow.id);
 ```
 
-`scope` is `owned` or `public`. `list` returns a `PagePromise<WorkflowSummary>`; the other reads return a full `Workflow`, which is the summary plus `system_prompt`, `rules`, `flows`, `tags`, and `prompt_config`. Only `create` accepts per-call `RequestOptions`.
+`scope` is `accessible` (default), `owned`, or `public`. `list` returns a `PagePromise<Workflow>` with the full workflow shape. Only `create` and `clone` accept per-call `RequestOptions`.
 
 ### Conversations and messages
 
 ```ts
-await bimpe.conversations.list(agentId, { channel: 'whatsapp', search: 'invoice' });
+await bimpe.conversations.list(agentId, {
+  channel: 'whatsapp',
+  is_test_channel: false,
+  needs_attention: true,
+});
 await bimpe.conversations.retrieve(agentId, conversationId);
+await bimpe.conversations.updateAiStatus(agentId, conversationId, { is_ai_chat_paused: true });
 
 await bimpe.conversations.messages.list(agentId, conversationId);
-const sent = await bimpe.conversations.messages.send(agentId, conversationId, { message: 'Hello' });
+const sent = await bimpe.conversations.messages.send(agentId, conversationId, {
+  message: 'Hello',
+  role: 'user',
+});
+const opened = await bimpe.conversations.createOrSendMessage(agentId, {
+  message: 'Hello',
+  channel_type: 'whatsapp',
+  channel_user_id: '+2348012345678',
+});
 ```
 
-`channel` accepts `whatsapp`, `messenger`, `instagram`, `webchat`, and the `test_*` variant of each. `conversations.list` returns a `PagePromise<Conversation>` and `messages.list` returns a `PagePromise<Message>`. `send` takes `SendMessageBody` (`message` plus optional `attachments`), accepts per-call `RequestOptions`, and returns the created `Message`.
+`channel` accepts `whatsapp`, `webchat`, `telephony`, and `test_*` variants. `conversations.list` returns a `PagePromise<ConversationListItem>`; `retrieve` returns a full `Conversation`. `send` takes `SendMessageBody` (`message` plus optional `role`). `createOrSendMessage` accepts either `conversation_id` or `channel_type` + `channel_user_id`.
 
 ### Streaming messages
 
@@ -117,7 +137,7 @@ const { ticket, expires_in } = await bimpe.conversations.messages.streamTicket(a
 
 ### Calls
 
-`calls.list()` is wired up, but the API answers with 501 today, so it throws `NotImplementedError`. The call site will keep working and start returning data once the endpoint ships, with no SDK change.
+`calls.list()` may throw `NotImplementedError` until the API ships. `calls.make(body)` and `calls.queue(body)` POST placeholder endpoints that echo the body with `code: not_implemented`.
 
 ## Pagination
 

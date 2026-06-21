@@ -38,14 +38,14 @@ describe('Agents resource', () => {
   it('create() POSTs /agents with body and idempotency option', async () => {
     const requestImpl = vi.fn().mockResolvedValue(okResponse({ id: 'a_1' }));
     const agent = await makeAgents(requestImpl).create(
-      { name: 'Hello' },
+      { workflow_id: 'w_1', name: 'Hello', description: 'Support bot' },
       { idempotencyKey: 'op-1' },
     );
     expect(agent.id).toBe('a_1');
     expect(requestImpl).toHaveBeenCalledWith({
       method: 'POST',
       path: '/agents',
-      body: { name: 'Hello' },
+      body: { workflow_id: 'w_1', name: 'Hello', description: 'Support bot' },
       idempotencyKey: 'op-1',
     });
   });
@@ -54,10 +54,8 @@ describe('Agents resource', () => {
     const requestImpl = vi.fn().mockResolvedValue(
       okResponse({
         id: 'a_1',
-        integration: [],
-        channel: [],
-        conversation_flow: [],
-        actions: [],
+        integrations: [],
+        channels: [],
         knowledge_bases: [],
       }),
     );
@@ -74,6 +72,16 @@ describe('Agents resource', () => {
       method: 'PATCH',
       path: '/agents/a_1',
       body: { name: 'New' },
+    });
+  });
+
+  it('updateLiveStatus() PATCHes /agents/{id}/live-status', async () => {
+    const requestImpl = vi.fn().mockResolvedValue(okResponse({ id: 'a_1', status: 'live' }));
+    await makeAgents(requestImpl).updateLiveStatus('a_1', { status: 'live' });
+    expect(requestImpl).toHaveBeenCalledWith({
+      method: 'PATCH',
+      path: '/agents/a_1/live-status',
+      body: { status: 'live' },
     });
   });
 });

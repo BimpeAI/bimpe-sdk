@@ -5,19 +5,14 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import NotRequired, TypedDict
 
+from .workflows import Workflow
+
+AgentPersona = Literal["professional", "friendly", "concise"]
+AgentStatus = Literal["development", "live", "paused"]
+
 
 class _Model(BaseModel):
     model_config = ConfigDict(extra="allow", frozen=True)
-
-
-class Rule(_Model):
-    id: str
-    name: str
-    trigger: str
-    condition: str | None = None
-    response: str
-    action: str | None = None
-    enabled: bool
 
 
 class IntegrationConfigField(_Model):
@@ -36,32 +31,33 @@ class IntegrationAction(_Model):
     require_human_approval: bool
 
 
-class Integration(_Model):
+class IntegrationSummary(_Model):
     id: str
     type: str
+    name: str
     status: str
     is_connected: bool
+
+
+class Integration(IntegrationSummary):
     config_fields: list[IntegrationConfigField] = []
     actions: list[IntegrationAction] = []
 
 
-class Channel(_Model):
+class ChannelSummary(_Model):
     id: str
     type: str
+    name: str
     status: str
     is_connected: bool
 
 
-class ConversationFlow(_Model):
-    name: str
-    description: str | None = None
-    category: str | None = None
-    priority: int
-    is_active: bool
+Channel = ChannelSummary
 
 
 class AgentAction(_Model):
     id: str
+    integration_id: str
     integration_type: str
     integration_name: str
     name: str
@@ -70,22 +66,25 @@ class AgentAction(_Model):
     is_enabled: bool
 
 
-class KnowledgeBase(_Model):
+class KnowledgeBaseSummary(_Model):
     id: str
     type: Literal["text", "url"]
     name: str
     description: str | None = None
 
 
+class KnowledgeBase(KnowledgeBaseSummary):
+    url: str | None = None
+    content: str | None = None
+
+
 class Agent(_Model):
     id: str
     name: str
-    description: str | None = None
-    system_prompt: str | None = None
+    description: str
+    workflow_id: str | None = None
     language: str | None = None
-    persona: str | None = None
-    agent_workflow_id: str | None = None
-    rules: list[Rule] | None = None
+    persona: AgentPersona | None = None
     timezone: str | None = None
     logo: str | None = None
     business_name: str | None = None
@@ -93,7 +92,7 @@ class Agent(_Model):
     business_email: str | None = None
     business_description: str | None = None
     test_channel_code: str | None = None
-    status: str
+    status: AgentStatus | None = None
     status_reason: str | None = None
     escalation_email: str | None = None
     created_at: str
@@ -101,31 +100,21 @@ class Agent(_Model):
 
 
 class AgentDetail(Agent):
-    integration: list[Integration] = []
-    channel: list[Channel] = []
-    conversation_flow: list[ConversationFlow] = []
-    actions: list[AgentAction] = []
-    knowledge_bases: list[KnowledgeBase] = []
+    knowledge_bases: list[KnowledgeBaseSummary] = []
+    integrations: list[IntegrationSummary] = []
+    channels: list[ChannelSummary] = []
 
 
-class RuleInput(TypedDict):
-    id: str
-    name: str
-    trigger: str
-    response: str
-    enabled: bool
-    condition: NotRequired[str | None]
-    action: NotRequired[str | None]
+class AgentCreateResponse(Agent):
+    workflow: Workflow | None = None
 
 
 class CreateAgentBody(TypedDict):
+    workflow_id: str
     name: str
-    description: NotRequired[str | None]
-    system_prompt: NotRequired[str | None]
+    description: str
     language: NotRequired[str | None]
-    persona: NotRequired[str | None]
-    agent_workflow_id: NotRequired[str | None]
-    rules: NotRequired[list[RuleInput] | None]
+    persona: NotRequired[AgentPersona | None]
     timezone: NotRequired[str | None]
     logo: NotRequired[str | None]
     business_name: NotRequired[str | None]
@@ -136,13 +125,11 @@ class CreateAgentBody(TypedDict):
 
 
 class UpdateAgentBody(TypedDict, total=False):
+    workflow_id: str
     name: str
-    description: str | None
-    system_prompt: str | None
+    description: str
     language: str | None
-    persona: str | None
-    agent_workflow_id: str | None
-    rules: list[RuleInput] | None
+    persona: AgentPersona | None
     timezone: str | None
     logo: str | None
     business_name: str | None
@@ -150,6 +137,15 @@ class UpdateAgentBody(TypedDict, total=False):
     business_email: str | None
     business_description: str | None
     escalation_email: str | None
+
+
+class UpdateLiveStatusBody(TypedDict):
+    status: AgentStatus
+    status_reason: NotRequired[str | None]
+
+
+class BulkActionIdsBody(TypedDict):
+    action_ids: list[str]
 
 
 class CreateKnowledgeBaseTextBody(TypedDict):

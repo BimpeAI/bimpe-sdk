@@ -19,6 +19,7 @@ describe('Agents read-only sub-resources', () => {
         {
           id: 'i_1',
           type: 'slack',
+          name: 'Slack',
           status: 'active',
           is_connected: true,
           config_fields: [],
@@ -35,27 +36,13 @@ describe('Agents read-only sub-resources', () => {
     const requestImpl = vi
       .fn()
       .mockResolvedValue(
-        okResponse([{ id: 'c_1', type: 'whatsapp', status: 'active', is_connected: true }]),
+        okResponse([
+          { id: 'c_1', type: 'whatsapp', name: 'WhatsApp', status: 'active', is_connected: true },
+        ]),
       );
     const out = await makeAgents(requestImpl).channels.list('a_1');
     expect(out[0]?.type).toBe('whatsapp');
     expect(requestImpl).toHaveBeenCalledWith({ method: 'GET', path: '/agents/a_1/channels' });
-  });
-
-  it('conversationFlows.list() GETs /agents/{id}/conversation_flows', async () => {
-    const requestImpl = vi
-      .fn()
-      .mockResolvedValue(
-        okResponse([
-          { name: 'greeting', description: null, category: null, priority: 1, is_active: true },
-        ]),
-      );
-    const out = await makeAgents(requestImpl).conversationFlows.list('a_1');
-    expect(out[0]?.name).toBe('greeting');
-    expect(requestImpl).toHaveBeenCalledWith({
-      method: 'GET',
-      path: '/agents/a_1/conversation_flows',
-    });
   });
 
   it('actions.list() GETs /agents/{id}/actions', async () => {
@@ -63,6 +50,7 @@ describe('Agents read-only sub-resources', () => {
       okResponse([
         {
           id: 'ac_1',
+          integration_id: 'i_1',
           integration_type: 'slack',
           integration_name: 'Slack',
           name: 'Post',
@@ -75,5 +63,25 @@ describe('Agents read-only sub-resources', () => {
     const out = await makeAgents(requestImpl).actions.list('a_1');
     expect(out[0]?.action_name).toBe('slack_post');
     expect(requestImpl).toHaveBeenCalledWith({ method: 'GET', path: '/agents/a_1/actions' });
+  });
+
+  it('actions.enable() POSTs /agents/{id}/actions/enable', async () => {
+    const requestImpl = vi.fn().mockResolvedValue(okResponse({ updated: 1 }));
+    await makeAgents(requestImpl).actions.enable('a_1', { action_ids: ['ac_1'] });
+    expect(requestImpl).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/agents/a_1/actions/enable',
+      body: { action_ids: ['ac_1'] },
+    });
+  });
+
+  it('actions.disable() POSTs /agents/{id}/actions/disable', async () => {
+    const requestImpl = vi.fn().mockResolvedValue(okResponse({ updated: 1 }));
+    await makeAgents(requestImpl).actions.disable('a_1', { action_ids: ['ac_1'] });
+    expect(requestImpl).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/agents/a_1/actions/disable',
+      body: { action_ids: ['ac_1'] },
+    });
   });
 });

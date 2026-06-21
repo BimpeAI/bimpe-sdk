@@ -21,7 +21,15 @@ def meta(current: int, has_next: bool) -> dict[str, object]:
 
 
 def agent(id_: str) -> dict[str, object]:
-    return {"id": id_, "name": "Bot", "status": "active", "created_at": "t", "updated_at": "t"}
+    return {
+        "id": id_,
+        "name": "Bot",
+        "description": "Support",
+        "workflow_id": "w_1",
+        "status": "development",
+        "created_at": "t",
+        "updated_at": "t",
+    }
 
 
 @respx.mock

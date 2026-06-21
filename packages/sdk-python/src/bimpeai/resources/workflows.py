@@ -7,11 +7,11 @@ from typing_extensions import Unpack
 from .._request import RequestOptions, RequestSpec
 from ..pagination import AsyncPage, Page
 from ..types.workflows import (
+    CloneWorkflowBody,
     CreateWorkflowBody,
     UpdateWorkflowBody,
     Workflow,
     WorkflowScope,
-    WorkflowSummary,
 )
 from ._specs import AsyncTransport, SyncTransport
 
@@ -33,6 +33,10 @@ def _list_spec(
 
 def _create_spec(body: dict[str, Any], options: RequestOptions) -> RequestSpec:
     return RequestSpec(method="POST", path="/workflows", body=dict(body), options=options)
+
+
+def _clone_spec(body: dict[str, Any], options: RequestOptions) -> RequestSpec:
+    return RequestSpec(method="POST", path="/workflows/clone", body=dict(body), options=options)
 
 
 def _retrieve_spec(workflow_id: str) -> RequestSpec:
@@ -59,12 +63,12 @@ class Workflows:
         search: str | None = None,
         sort: str | None = None,
         scope: WorkflowScope | None = None,
-    ) -> Page[WorkflowSummary]:
-        def fetch(current: int) -> Page[WorkflowSummary]:
+    ) -> Page[Workflow]:
+        def fetch(current: int) -> Page[Workflow]:
             resp = self._client.request(
                 _list_spec(page=current, limit=limit, search=search, sort=sort, scope=scope)
             )
-            data = [WorkflowSummary.model_validate(item) for item in resp.data]
+            data = [Workflow.model_validate(item) for item in resp.data]
             return Page(data=data, meta=resp.meta, request_id=resp.request_id, fetcher=fetch)
 
         return fetch(page)
@@ -85,6 +89,25 @@ class Workflows:
             headers=headers,
         )
         resp = self._client.request(_create_spec(dict(body), options))
+        return Workflow.model_validate(resp.data)
+
+    def clone(
+        self,
+        *,
+        source_workflow_id: str,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Workflow:
+        body: CloneWorkflowBody = {"source_workflow_id": source_workflow_id}
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = self._client.request(_clone_spec(dict(body), options))
         return Workflow.model_validate(resp.data)
 
     def retrieve(self, workflow_id: str) -> Workflow:
@@ -111,12 +134,12 @@ class AsyncWorkflows:
         search: str | None = None,
         sort: str | None = None,
         scope: WorkflowScope | None = None,
-    ) -> AsyncPage[WorkflowSummary]:
-        async def fetch(current: int) -> AsyncPage[WorkflowSummary]:
+    ) -> AsyncPage[Workflow]:
+        async def fetch(current: int) -> AsyncPage[Workflow]:
             resp = await self._client.request(
                 _list_spec(page=current, limit=limit, search=search, sort=sort, scope=scope)
             )
-            data = [WorkflowSummary.model_validate(item) for item in resp.data]
+            data = [Workflow.model_validate(item) for item in resp.data]
             return AsyncPage(data=data, meta=resp.meta, request_id=resp.request_id, fetcher=fetch)
 
         return await fetch(page)
@@ -137,6 +160,25 @@ class AsyncWorkflows:
             headers=headers,
         )
         resp = await self._client.request(_create_spec(dict(body), options))
+        return Workflow.model_validate(resp.data)
+
+    async def clone(
+        self,
+        *,
+        source_workflow_id: str,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> Workflow:
+        body: CloneWorkflowBody = {"source_workflow_id": source_workflow_id}
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = await self._client.request(_clone_spec(dict(body), options))
         return Workflow.model_validate(resp.data)
 
     async def retrieve(self, workflow_id: str) -> Workflow:

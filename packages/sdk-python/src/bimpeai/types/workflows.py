@@ -5,17 +5,27 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import NotRequired, TypedDict
 
-from .agents import Rule, RuleInput
+from .rules import Rule, RuleInput
 
 WorkflowVisibility = Literal["private", "public"]
-WorkflowScope = Literal["owned", "public"]
+WorkflowScope = Literal["accessible", "owned", "public"]
 
 
 class _Model(BaseModel):
     model_config = ConfigDict(extra="allow", frozen=True)
 
 
-class WorkflowSummary(_Model):
+class WorkflowGuide(_Model):
+    youtubeUrl: str | None = None
+    steps: list[str] = []
+
+
+class WorkflowFaqItem(_Model):
+    question: str
+    answer: str
+
+
+class Workflow(_Model):
     id: str
     name: str
     description: str | None = None
@@ -24,33 +34,58 @@ class WorkflowSummary(_Model):
     is_owner: bool
     created_at: str
     updated_at: str
-
-
-class Workflow(WorkflowSummary):
     system_prompt: str | None = None
     rules: list[Rule] = []
     flows: list[dict[str, Any]] = []
     tags: list[str] = []
-    prompt_config: dict[str, Any] = {}
+    integrations: list[str] = []
+    channels: list[str] = []
+    actions: list[str] = []
+    guide: WorkflowGuide | None = None
+    faq: list[WorkflowFaqItem] = []
+    setup_steps: list[Any] = []
+    setup_time: int | None = None
+    video_url: str | None = None
+
+
+WorkflowSummary = Workflow
 
 
 class CreateWorkflowBody(TypedDict):
     name: str
+    system_prompt: str
     description: NotRequired[str]
     category: NotRequired[str]
-    system_prompt: NotRequired[str]
     rules: NotRequired[list[RuleInput]]
     flows: NotRequired[list[dict[str, Any]]]
     tags: NotRequired[list[str]]
-    prompt_config: NotRequired[dict[str, Any]]
+    integrations: NotRequired[list[str]]
+    channels: NotRequired[list[str]]
+    actions: NotRequired[list[str]]
+    guide: NotRequired[dict[str, Any]]
+    faq: NotRequired[list[dict[str, str]]]
+    setup_steps: NotRequired[list[Any]]
+    setup_time: NotRequired[int]
+    video_url: NotRequired[str]
 
 
 class UpdateWorkflowBody(TypedDict, total=False):
     name: str
+    system_prompt: str
     description: str
     category: str
-    system_prompt: str
     rules: list[RuleInput]
     flows: list[dict[str, Any]]
     tags: list[str]
-    prompt_config: dict[str, Any]
+    integrations: list[str]
+    channels: list[str]
+    actions: list[str]
+    guide: dict[str, Any]
+    faq: list[dict[str, str]]
+    setup_steps: list[Any]
+    setup_time: int
+    video_url: str
+
+
+class CloneWorkflowBody(TypedDict):
+    source_workflow_id: str

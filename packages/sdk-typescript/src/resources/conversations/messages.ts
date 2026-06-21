@@ -39,6 +39,14 @@ export class Messages {
     return res.data;
   }
 
+  async retrieve(agentId: string, conversationId: string, messageId: string): Promise<Message> {
+    const res = await this.client.request<Message>({
+      method: 'GET',
+      path: `/agents/${agentId}/conversations/${conversationId}/messages/${messageId}`,
+    });
+    return res.data;
+  }
+
   /** Issue a single-use, short-lived ticket for opening the message stream. */
   async streamTicket(
     agentId: string,

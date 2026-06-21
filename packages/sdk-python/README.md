@@ -79,20 +79,25 @@ Every client exposes four resources: `agents`, `workflows`, `conversations`, and
 
 ```python
 agents = client.agents.list(page=2, limit=50, search="support", sort="-created_at")
-agent = client.agents.create(name="Support bot", description="Tier 1 support", idempotency_key="op-1")
+agent = client.agents.create(
+    workflow_id="wf_abc",
+    name="Support bot",
+    description="Tier 1 support",
+    idempotency_key="op-1",
+)
 detail = client.agents.retrieve(agent.id)
 client.agents.update(agent.id, description="Now tier 2 as well")
+client.agents.update_live_status(agent.id, status="live")
 ```
 
-`list` returns a `Page[Agent]`. `create` and `update` take the agent fields as keyword arguments (`name`, `description`, `system_prompt`, `language`, `persona`, `agent_workflow_id`, `rules`, `timezone`, `logo`, the `business_*` fields, and `escalation_email`); only `name` is required on create, and every field is optional on update. `create` and `update` return an `Agent`, while `retrieve` returns an `AgentDetail`, which is an `Agent` plus the agent's integrations, channels, conversation flows, actions, and knowledge bases inlined.
-
-The read-only sub-resources each return a plain list.
+`list` returns a `Page[Agent]`. `create` requires `workflow_id`, `name`, and `description`, and returns an `AgentCreateResponse`. `retrieve` returns an `AgentDetail` with `integrations`, `channels`, and `knowledge_bases` summaries.
 
 ```python
 client.agents.integrations.list(agent_id)
 client.agents.channels.list(agent_id)
-client.agents.conversation_flows.list(agent_id)
 client.agents.actions.list(agent_id)
+client.agents.actions.enable(agent_id, {"action_ids": ["ac_1"]})
+client.agents.actions.disable(agent_id, {"action_ids": ["ac_1"]})
 ```
 
 Knowledge bases support full CRUD. The create body is a text source or a URL source, distinguished by its `type`, and is passed as a single dict so the union stays well typed.
@@ -108,26 +113,40 @@ client.agents.knowledge_bases.delete(agent_id, kb_id)
 ## Workflows
 
 ```python
-workflows = client.workflows.list(scope="public", search="triage", sort="-created_at")
-workflow = client.workflows.create(name="Triage", idempotency_key="op-2")
+workflows = client.workflows.list(scope="accessible", search="triage", sort="-created_at")
+workflow = client.workflows.create(
+    name="Triage", system_prompt="You are helpful…", idempotency_key="op-2"
+)
+cloned = client.workflows.clone(source_workflow_id=workflow.id)
 client.workflows.retrieve(workflow.id)
 client.workflows.update(workflow.id, tags=["v2"])
 client.workflows.delete(workflow.id)
 ```
 
-`scope` is either `owned` or `public`. `list` returns a `Page[WorkflowSummary]`; `retrieve`, `create`, and `update` return a `Workflow`, which is the summary plus `system_prompt`, `rules`, `flows`, `tags`, and `prompt_config`. As with agents, create and update take the fields as keyword arguments and only `name` is required on create.
+`scope` is `accessible` (default), `owned`, or `public`. `list` returns a `Page[Workflow]` with the full workflow shape. `create` requires `name` and `system_prompt`.
 
 ## Conversations and messages
 
 ```python
-conversations = client.conversations.list(agent_id, channel="whatsapp", search="invoice")
+conversations = client.conversations.list(
+    agent_id, channel="whatsapp", is_test_channel=False, needs_attention=True
+)
 conversation = client.conversations.retrieve(agent_id, conversation_id)
+client.conversations.update_ai_status(agent_id, conversation_id, is_ai_chat_paused=True)
 
 messages = client.conversations.messages.list(agent_id, conversation_id)
-sent = client.conversations.messages.send(agent_id, conversation_id, message="Hello")
+sent = client.conversations.messages.send(agent_id, conversation_id, message="Hello", role="user")
+opened = client.conversations.create_or_send(
+    agent_id,
+    {
+        "message": "Hello",
+        "channel_type": "whatsapp",
+        "channel_user_id": "+2348012345678",
+    },
+)
 ```
 
-`channel` accepts `whatsapp`, `messenger`, `instagram`, `webchat`, and the `test_*` variants of each. `conversations.list` returns a `Page[Conversation]` and `messages.list` returns a `Page[Message]`. `send` takes `message` and optional `attachments` (each `{"type": ..., "url": ...}`) and returns the created `Message`.
+`channel` accepts `whatsapp`, `webchat`, `telephony`, and `test_*` variants. `conversations.list` returns a `Page[ConversationListItem]`; `retrieve` returns a full `Conversation`. `send` accepts `message` and optional `role`. `create_or_send` accepts either `conversation_id` or `channel_type` + `channel_user_id`.
 
 ## Streaming messages
 
@@ -158,7 +177,7 @@ print(ticket.ticket, ticket.expires_in)
 
 ## Calls
 
-`calls.list()` is wired up, but the API answers with 501 today, so it raises `APINotImplementedError`. The call site will keep working and start returning data once the endpoint ships, without an SDK change.
+`calls.list()` may raise `APINotImplementedError` until the API ships. `calls.make(body)` and `calls.queue(body)` POST placeholder endpoints that echo the body with `code: not_implemented`.
 
 ```python
 from bimpeai import APINotImplementedError

@@ -18,4 +18,37 @@ describe('Calls resource', () => {
     await expect(calls.list()).rejects.toBeInstanceOf(NotImplementedError);
     expect(requestImpl).toHaveBeenCalledWith({ method: 'GET', path: '/calls' });
   });
+
+  it('make() POSTs /calls', async () => {
+    const requestImpl = vi.fn().mockResolvedValue({
+      data: { agent_id: 'a_1' },
+      meta: null,
+      requestId: 'r1',
+      status: 200,
+      headers: new Headers(),
+    });
+    const out = await new Calls({ request: requestImpl } as never).make({ agent_id: 'a_1' });
+    expect(out).toEqual({ agent_id: 'a_1' });
+    expect(requestImpl).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/calls',
+      body: { agent_id: 'a_1' },
+    });
+  });
+
+  it('queue() POSTs /calls/queue', async () => {
+    const requestImpl = vi.fn().mockResolvedValue({
+      data: { agent_id: 'a_1' },
+      meta: null,
+      requestId: 'r1',
+      status: 200,
+      headers: new Headers(),
+    });
+    await new Calls({ request: requestImpl } as never).queue({ agent_id: 'a_1' });
+    expect(requestImpl).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/calls/queue',
+      body: { agent_id: 'a_1' },
+    });
+  });
 });

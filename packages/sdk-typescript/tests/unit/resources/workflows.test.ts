@@ -25,24 +25,48 @@ describe('Workflows resource', () => {
         has_previous_page: false,
       }),
     );
-    const page = await make(requestImpl).list({ scope: 'public', page: 1 });
+    const page = await make(requestImpl).list({ scope: 'accessible', page: 1 });
     expect(page).toBeInstanceOf(Page);
     expect(requestImpl).toHaveBeenCalledWith({
       method: 'GET',
       path: '/workflows',
-      query: { page: 1, limit: undefined, search: undefined, sort: undefined, scope: 'public' },
+      query: {
+        page: 1,
+        limit: undefined,
+        search: undefined,
+        sort: undefined,
+        scope: 'accessible',
+      },
     });
   });
 
   it('create() POSTs /workflows', async () => {
     const requestImpl = vi.fn().mockResolvedValue(okResponse({ id: 'w_1' }));
-    const w = await make(requestImpl).create({ name: 'Triage' }, { idempotencyKey: 'op-1' });
+    const w = await make(requestImpl).create(
+      { name: 'Triage', system_prompt: 'You are helpful' },
+      { idempotencyKey: 'op-1' },
+    );
     expect(w.id).toBe('w_1');
     expect(requestImpl).toHaveBeenCalledWith({
       method: 'POST',
       path: '/workflows',
-      body: { name: 'Triage' },
+      body: { name: 'Triage', system_prompt: 'You are helpful' },
       idempotencyKey: 'op-1',
+    });
+  });
+
+  it('clone() POSTs /workflows/clone', async () => {
+    const requestImpl = vi.fn().mockResolvedValue(okResponse({ id: 'w_2' }));
+    const w = await make(requestImpl).clone(
+      { source_workflow_id: 'w_1' },
+      { idempotencyKey: 'op-2' },
+    );
+    expect(w.id).toBe('w_2');
+    expect(requestImpl).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/workflows/clone',
+      body: { source_workflow_id: 'w_1' },
+      idempotencyKey: 'op-2',
     });
   });
 

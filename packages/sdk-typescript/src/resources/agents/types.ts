@@ -1,3 +1,5 @@
+import type { Workflow } from '../workflows/types';
+
 export interface Rule {
   readonly id: string;
   readonly name: string;
@@ -18,15 +20,16 @@ export interface RuleInput {
   enabled: boolean;
 }
 
+export type AgentPersona = 'professional' | 'friendly' | 'concise';
+export type AgentStatus = 'development' | 'live' | 'paused';
+
 export interface Agent {
   readonly id: string;
   readonly name: string;
-  readonly description: string | null;
-  readonly system_prompt: string | null;
+  readonly description: string;
+  readonly workflow_id: string | null;
   readonly language: string | null;
-  readonly persona: string | null;
-  readonly agent_workflow_id: string | null;
-  readonly rules: readonly Rule[] | null;
+  readonly persona: AgentPersona | null;
   readonly timezone: string | null;
   readonly logo: string | null;
   readonly business_name: string | null;
@@ -34,29 +37,52 @@ export interface Agent {
   readonly business_email: string | null;
   readonly business_description: string | null;
   readonly test_channel_code: string | null;
-  readonly status: string;
+  readonly status: AgentStatus | null;
   readonly status_reason: string | null;
   readonly escalation_email: string | null;
   readonly created_at: string;
   readonly updated_at: string;
 }
 
+export interface AgentIntegrationSummary {
+  readonly id: string;
+  readonly type: string;
+  readonly name: string;
+  readonly status: string;
+  readonly is_connected: boolean;
+}
+
+export interface AgentChannelSummary {
+  readonly id: string;
+  readonly type: string;
+  readonly name: string;
+  readonly status: string;
+  readonly is_connected: boolean;
+}
+
+export interface KnowledgeBaseSummary {
+  readonly id: string;
+  readonly type: 'text' | 'url';
+  readonly name: string;
+  readonly description: string | null;
+}
+
 export interface AgentDetail extends Agent {
-  readonly integration: readonly AgentIntegration[];
-  readonly channel: readonly AgentChannel[];
-  readonly conversation_flow: readonly AgentConversationFlow[];
-  readonly actions: readonly AgentActionSummary[];
   readonly knowledge_bases: readonly KnowledgeBaseSummary[];
+  readonly integrations: readonly AgentIntegrationSummary[];
+  readonly channels: readonly AgentChannelSummary[];
+}
+
+export interface AgentCreateResponse extends Agent {
+  readonly workflow?: Workflow | null;
 }
 
 export interface CreateAgentBody {
+  workflow_id: string;
   name: string;
-  description?: string | null;
-  system_prompt?: string | null;
+  description: string;
   language?: string | null;
-  persona?: string | null;
-  agent_workflow_id?: string | null;
-  rules?: RuleInput[] | null;
+  persona?: AgentPersona | null;
   timezone?: string | null;
   logo?: string | null;
   business_name?: string | null;
@@ -67,6 +93,15 @@ export interface CreateAgentBody {
 }
 
 export type UpdateAgentBody = Partial<CreateAgentBody>;
+
+export type UpdateLiveStatusBody = {
+  status: AgentStatus;
+  status_reason?: string | null;
+};
+
+export interface BulkActionIdsBody {
+  action_ids: string[];
+}
 
 export interface IntegrationConfigField {
   readonly key: string;
@@ -84,45 +119,22 @@ export interface IntegrationAction {
   readonly require_human_approval: boolean;
 }
 
-export interface AgentIntegration {
-  readonly id: string;
-  readonly type: string;
-  readonly status: string;
-  readonly is_connected: boolean;
+export interface AgentIntegration extends AgentIntegrationSummary {
   readonly config_fields: readonly IntegrationConfigField[];
   readonly actions: readonly IntegrationAction[];
 }
 
-export interface AgentChannel {
-  readonly id: string;
-  readonly type: string;
-  readonly status: string;
-  readonly is_connected: boolean;
-}
-
-export interface AgentConversationFlow {
-  readonly name: string;
-  readonly description: string | null;
-  readonly category: string | null;
-  readonly priority: number;
-  readonly is_active: boolean;
-}
+export interface AgentChannel extends AgentChannelSummary {}
 
 export interface AgentActionSummary {
   readonly id: string;
+  readonly integration_id: string;
   readonly integration_type: string;
   readonly integration_name: string;
   readonly name: string;
   readonly action_name: string;
   readonly description: string | null;
   readonly is_enabled: boolean;
-}
-
-export interface KnowledgeBaseSummary {
-  readonly id: string;
-  readonly type: 'text' | 'url';
-  readonly name: string;
-  readonly description: string | null;
 }
 
 export interface CreateKnowledgeBaseTextBody {
@@ -146,4 +158,9 @@ export interface UpdateKnowledgeBaseBody {
   description?: string | null;
   content?: string | null;
   url?: string | null;
+}
+
+export interface KnowledgeBaseItem extends KnowledgeBaseSummary {
+  readonly url?: string | null;
+  readonly content?: string | null;
 }

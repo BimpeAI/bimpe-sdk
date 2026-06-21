@@ -1,26 +1,34 @@
 export type ConversationChannel =
   | 'whatsapp'
-  | 'messenger'
-  | 'instagram'
   | 'webchat'
+  | 'telephony'
   | 'test_whatsapp'
-  | 'test_messenger'
-  | 'test_instagram';
+  | 'test_webchat'
+  | 'test_telephony';
 
-export interface Conversation {
+export type CreateOrSendChannelType = 'whatsapp' | 'webchat' | 'telephony';
+
+export interface ConversationListItem {
   readonly id: string;
   readonly channel_type: string;
   readonly channel_id: string | null;
+  readonly channel_user_id: string | null;
+  readonly channel_user_username: string | null;
   readonly is_test_channel: boolean;
-  readonly full_name: string | null;
-  readonly email: string | null;
-  readonly phone_number: string | null;
-  readonly channel_username: string | null;
   readonly is_ai_chat_paused: boolean;
+  readonly needs_attention: boolean;
   readonly last_message_at: string | null;
+  readonly last_seen: string | null;
   readonly last_message_preview: string | null;
   readonly created_at: string;
   readonly updated_at: string;
+}
+
+export interface Conversation extends ConversationListItem {
+  readonly full_name: string | null;
+  readonly email: string | null;
+  readonly phone_number: string | null;
+  readonly profile_picture: string | null;
 }
 
 export interface ListConversationsQuery {
@@ -28,6 +36,14 @@ export interface ListConversationsQuery {
   limit?: number;
   search?: string;
   channel?: ConversationChannel;
+  is_test_channel?: boolean;
+  is_ai_chat_paused?: boolean;
+  needs_attention?: boolean;
+}
+
+export interface MessageAttachment {
+  readonly type: string;
+  readonly url: string;
 }
 
 export interface Message {
@@ -36,16 +52,44 @@ export interface Message {
   readonly message: string | null;
   readonly message_type: string | null;
   readonly created_at: string;
+  readonly attachments?: readonly MessageAttachment[];
 }
 
-export interface MessageAttachment {
-  type: string;
-  url: string;
-}
+export type MessageRole = 'user' | 'assistant';
 
 export interface SendMessageBody {
   message: string;
-  attachments?: MessageAttachment[];
+  role?: MessageRole;
+}
+
+export interface SendToConversationBody {
+  message: string;
+  role?: MessageRole;
+}
+
+export interface CreateOrSendExistingBody extends SendToConversationBody {
+  conversation_id: string;
+}
+
+export interface CreateOrSendByChannelBody extends SendToConversationBody {
+  channel_type: CreateOrSendChannelType;
+  channel_user_id: string;
+  channel_username?: string;
+  is_test_channel?: boolean;
+}
+
+export type CreateOrSendMessageBody = CreateOrSendExistingBody | CreateOrSendByChannelBody;
+
+export interface CreateOrSendMessageResponse extends Message {
+  readonly conversation_id: string;
+}
+
+export interface UpdateAiStatusBody {
+  is_ai_chat_paused: boolean;
+}
+
+export interface UpdateAiStatusResponse {
+  readonly is_ai_chat_paused: boolean;
 }
 
 export interface ListMessagesQuery {

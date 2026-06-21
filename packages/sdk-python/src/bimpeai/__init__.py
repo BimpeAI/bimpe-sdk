@@ -23,21 +23,24 @@ from .pagination import AsyncPage, Page
 from .types.agents import (
     Agent,
     AgentAction,
+    AgentCreateResponse,
     AgentDetail,
+    AgentStatus,
     Channel,
-    ConversationFlow,
     Integration,
     KnowledgeBase,
-    Rule,
 )
 from .types.calls import Call
 from .types.conversations import (
     Conversation,
+    ConversationListItem,
+    CreateOrSendMessageResponse,
     Message,
     StreamHeartbeatEvent,
     StreamMessageEvent,
     StreamTicket,
 )
+from .types.rules import Rule
 from .types.workflows import Workflow, WorkflowSummary
 
 __all__ = [
@@ -45,7 +48,9 @@ __all__ = [
     "AsyncPage",
     "Agent",
     "AgentAction",
+    "AgentCreateResponse",
     "AgentDetail",
+    "AgentStatus",
     "ApiResponse",
     "APIConnectionError",
     "APIError",
@@ -59,7 +64,8 @@ __all__ = [
     "Channel",
     "ConflictError",
     "Conversation",
-    "ConversationFlow",
+    "ConversationListItem",
+    "CreateOrSendMessageResponse",
     "ErrorCode",
     "Integration",
     "InternalServerError",

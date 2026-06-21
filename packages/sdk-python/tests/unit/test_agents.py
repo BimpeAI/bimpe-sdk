@@ -6,12 +6,14 @@ from bimpeai._models import ApiResponse
 from bimpeai._request import RequestSpec
 from bimpeai.pagination import Page
 from bimpeai.resources.agents import Agents, AsyncAgents
-from bimpeai.types.agents import Agent
+from bimpeai.types.agents import AgentCreateResponse
 
 AGENT: dict[str, Any] = {
     "id": "a_1",
     "name": "Bot",
-    "status": "active",
+    "description": "Support",
+    "workflow_id": "w_1",
+    "status": "development",
     "created_at": "t",
     "updated_at": "t",
 }
@@ -54,22 +56,29 @@ def test_list_builds_get_with_query_and_returns_page() -> None:
 
 def test_create_sends_body_and_idempotency() -> None:
     client = FakeSync({**AGENT, "name": "Hi"})
-    agent = Agents(client).create(name="Hi", idempotency_key="op-1")
-    assert isinstance(agent, Agent)
+    agent = Agents(client).create(
+        workflow_id="w_1",
+        name="Hi",
+        description="Support bot",
+        idempotency_key="op-1",
+    )
+    assert isinstance(agent, AgentCreateResponse)
     spec = client.specs[-1]
     assert spec.method == "POST"
     assert spec.path == "/agents"
-    assert spec.body == {"name": "Hi"}
+    assert spec.body == {
+        "workflow_id": "w_1",
+        "name": "Hi",
+        "description": "Support bot",
+    }
     assert spec.options.idempotency_key == "op-1"
 
 
 def test_retrieve_and_update() -> None:
     detail: dict[str, Any] = {
         **AGENT,
-        "integration": [],
-        "channel": [],
-        "conversation_flow": [],
-        "actions": [],
+        "integrations": [],
+        "channels": [],
         "knowledge_bases": [],
     }
     client = FakeSync(detail)
@@ -78,11 +87,40 @@ def test_retrieve_and_update() -> None:
     Agents(FakeSync({**AGENT, "name": "New"})).update("a_1", name="New")
 
 
+def test_update_live_status() -> None:
+    client = FakeSync({**AGENT, "status": "live"})
+    Agents(client).update_live_status("a_1", status="live")
+    assert client.specs[-1] == RequestSpec(
+        method="PATCH",
+        path="/agents/a_1/live-status",
+        body={"status": "live"},
+    )
+
+
 def test_integrations_subresource() -> None:
-    client = FakeSync([{"id": "i_1", "type": "slack", "status": "ok", "is_connected": True}])
+    client = FakeSync(
+        [{"id": "i_1", "type": "slack", "name": "Slack", "status": "ok", "is_connected": True}]
+    )
     out = Agents(client).integrations.list("a_1")
     assert out[0].type == "slack"
     assert client.specs[-1] == RequestSpec(method="GET", path="/agents/a_1/integrations")
+
+
+def test_actions_enable_disable() -> None:
+    client = FakeSync({"updated": 1})
+    agents = Agents(client)
+    agents.actions.enable("a_1", {"action_ids": ["ac_1"]})
+    assert client.specs[-1] == RequestSpec(
+        method="POST",
+        path="/agents/a_1/actions/enable",
+        body={"action_ids": ["ac_1"]},
+    )
+    agents.actions.disable("a_1", {"action_ids": ["ac_1"]})
+    assert client.specs[-1] == RequestSpec(
+        method="POST",
+        path="/agents/a_1/actions/disable",
+        body={"action_ids": ["ac_1"]},
+    )
 
 
 def test_knowledge_bases_crud() -> None:
@@ -106,5 +144,9 @@ async def test_async_list_and_create() -> None:
     page = await AsyncAgents(client).list()
     assert [agent.id async for agent in page] == ["a_1"]
     create_client = FakeAsync({**AGENT, "name": "Hi"})
-    await AsyncAgents(create_client).create(name="Hi")
+    await AsyncAgents(create_client).create(
+        workflow_id="w_1",
+        name="Hi",
+        description="Support bot",
+    )
     assert create_client.specs[-1].method == "POST"

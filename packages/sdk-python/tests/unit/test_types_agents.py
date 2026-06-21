@@ -1,4 +1,4 @@
-from bimpeai.types.agents import Agent, AgentDetail, KnowledgeBase
+from bimpeai.types.agents import Agent, AgentDetail, KnowledgeBaseSummary
 
 
 def test_agent_parses_and_tolerates_extra() -> None:
@@ -6,7 +6,9 @@ def test_agent_parses_and_tolerates_extra() -> None:
         {
             "id": "a_1",
             "name": "Bot",
-            "status": "active",
+            "description": "Support",
+            "workflow_id": "w_1",
+            "status": "development",
             "created_at": "2026-01-01T00:00:00Z",
             "updated_at": "2026-01-01T00:00:00Z",
             "future_field": 1,
@@ -14,6 +16,7 @@ def test_agent_parses_and_tolerates_extra() -> None:
     )
     assert agent.id == "a_1"
     assert agent.name == "Bot"
+    assert agent.workflow_id == "w_1"
 
 
 def test_agent_detail_has_nested_lists() -> None:
@@ -21,15 +24,17 @@ def test_agent_detail_has_nested_lists() -> None:
         {
             "id": "a_1",
             "name": "Bot",
-            "status": "active",
+            "description": "Support",
+            "workflow_id": "w_1",
+            "status": "development",
             "created_at": "t",
             "updated_at": "t",
-            "integration": [],
-            "channel": [],
-            "conversation_flow": [],
-            "actions": [],
-            "knowledge_bases": [{"id": "k_1", "type": "text", "name": "FAQ", "description": None}],
+            "integrations": [],
+            "channels": [],
+            "knowledge_bases": [
+                {"id": "k_1", "type": "text", "name": "FAQ", "description": None}
+            ],
         }
     )
-    assert isinstance(detail.knowledge_bases[0], KnowledgeBase)
+    assert isinstance(detail.knowledge_bases[0], KnowledgeBaseSummary)
     assert detail.knowledge_bases[0].type == "text"
