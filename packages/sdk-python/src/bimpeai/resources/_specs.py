@@ -36,8 +36,32 @@ def update_agent_spec(agent_id: str, body: dict[str, Any]) -> RequestSpec:
     return RequestSpec(method="PATCH", path=f"/agents/{agent_id}", body=dict(body))
 
 
+def update_live_status_spec(
+    agent_id: str, body: dict[str, Any], options: RequestOptions
+) -> RequestSpec:
+    return RequestSpec(
+        method="PATCH", path=f"/agents/{agent_id}/live-status", body=dict(body), options=options
+    )
+
+
 def list_agent_subresource_spec(agent_id: str, name: str) -> RequestSpec:
     return RequestSpec(method="GET", path=f"/agents/{agent_id}/{name}")
+
+
+def enable_actions_spec(
+    agent_id: str, body: dict[str, Any], options: RequestOptions
+) -> RequestSpec:
+    return RequestSpec(
+        method="POST", path=f"/agents/{agent_id}/actions/enable", body=dict(body), options=options
+    )
+
+
+def disable_actions_spec(
+    agent_id: str, body: dict[str, Any], options: RequestOptions
+) -> RequestSpec:
+    return RequestSpec(
+        method="POST", path=f"/agents/{agent_id}/actions/disable", body=dict(body), options=options
+    )
 
 
 def create_knowledge_base_spec(
@@ -56,3 +80,70 @@ def update_knowledge_base_spec(agent_id: str, kb_id: str, body: dict[str, Any]) 
 
 def delete_knowledge_base_spec(agent_id: str, kb_id: str) -> RequestSpec:
     return RequestSpec(method="DELETE", path=f"/agents/{agent_id}/knowledge_bases/{kb_id}")
+
+
+def create_conversation_message_spec(
+    agent_id: str, body: dict[str, Any], options: RequestOptions
+) -> RequestSpec:
+    return RequestSpec(
+        method="POST",
+        path=f"/agents/{agent_id}/conversations/messages",
+        body=dict(body),
+        options=options,
+    )
+
+
+def set_ai_status_spec(
+    agent_id: str, conversation_id: str, body: dict[str, Any], options: RequestOptions
+) -> RequestSpec:
+    return RequestSpec(
+        method="PATCH",
+        path=f"/agents/{agent_id}/conversations/{conversation_id}/ai-status",
+        body=dict(body),
+        options=options,
+    )
+
+
+def retrieve_message_spec(agent_id: str, conversation_id: str, message_id: str) -> RequestSpec:
+    return RequestSpec(
+        method="GET",
+        path=f"/agents/{agent_id}/conversations/{conversation_id}/messages/{message_id}",
+    )
+
+
+def list_calls_spec(
+    agent_id: str,
+    *,
+    page: int,
+    limit: int | None,
+    search: str | None,
+    sort: str | None,
+    is_test_call: bool | None,
+    status: str | None,
+) -> RequestSpec:
+    return RequestSpec(
+        method="GET",
+        path=f"/agents/{agent_id}/calls",
+        query={
+            "page": page,
+            "limit": limit,
+            "search": search,
+            "sort": sort,
+            "is_test_call": is_test_call,
+            "status": status,
+        },
+    )
+
+
+def make_call_spec(agent_id: str, body: dict[str, Any], options: RequestOptions) -> RequestSpec:
+    return RequestSpec(
+        method="POST", path=f"/agents/{agent_id}/calls", body=dict(body), options=options
+    )
+
+
+def retrieve_call_spec(agent_id: str, call_id: str) -> RequestSpec:
+    return RequestSpec(method="GET", path=f"/agents/{agent_id}/calls/{call_id}")
+
+
+def clone_workflow_spec(body: dict[str, Any], options: RequestOptions) -> RequestSpec:
+    return RequestSpec(method="POST", path="/workflows/clone", body=dict(body), options=options)

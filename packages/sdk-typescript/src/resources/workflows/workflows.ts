@@ -1,11 +1,11 @@
 import { Page, PagePromise } from '../../core/pagination';
 import type { RequestExecutor, RequestOptions } from '../../core/types';
 import type {
+  CloneWorkflowBody,
   CreateWorkflowBody,
   ListWorkflowsQuery,
   UpdateWorkflowBody,
   Workflow,
-  WorkflowSummary,
 } from './types';
 
 type Client = RequestExecutor;
@@ -13,7 +13,7 @@ type Client = RequestExecutor;
 export class Workflows {
   constructor(private readonly client: Client) {}
 
-  list(query: ListWorkflowsQuery = {}): PagePromise<WorkflowSummary> {
+  list(query: ListWorkflowsQuery = {}): PagePromise<Workflow> {
     return new PagePromise(() => this.fetchPage(query.page ?? 1, query));
   }
 
@@ -21,6 +21,16 @@ export class Workflows {
     const res = await this.client.request<Workflow>({
       method: 'POST',
       path: '/workflows',
+      body,
+      ...options,
+    });
+    return res.data;
+  }
+
+  async clone(body: CloneWorkflowBody, options: RequestOptions = {}): Promise<Workflow> {
+    const res = await this.client.request<Workflow>({
+      method: 'POST',
+      path: '/workflows/clone',
       body,
       ...options,
     });
@@ -51,8 +61,8 @@ export class Workflows {
     });
   }
 
-  private async fetchPage(page: number, query: ListWorkflowsQuery): Promise<Page<WorkflowSummary>> {
-    const res = await this.client.request<WorkflowSummary[]>({
+  private async fetchPage(page: number, query: ListWorkflowsQuery): Promise<Page<Workflow>> {
+    const res = await this.client.request<Workflow[]>({
       method: 'GET',
       path: '/workflows',
       query: {
@@ -63,7 +73,7 @@ export class Workflows {
         scope: query.scope,
       },
     });
-    return new Page<WorkflowSummary>({
+    return new Page<Workflow>({
       data: res.data,
       meta: res.meta,
       requestId: res.requestId,

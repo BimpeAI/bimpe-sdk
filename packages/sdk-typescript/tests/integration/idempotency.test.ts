@@ -36,7 +36,10 @@ describe('idempotency integration', () => {
       baseUrl: 'https://api.bimpeai.test',
       maxRetries: 3,
     });
-    await client.agents.create({ name: 'A' }, { idempotencyKey: 'op-123' });
+    await client.agents.create(
+      { workflow_id: 'wf_1', name: 'A', description: 'Support agent' },
+      { idempotencyKey: 'op-123' },
+    );
     expect(seenKeys).toEqual(['op-123', 'op-123', 'op-123']);
   });
 
@@ -46,7 +49,7 @@ describe('idempotency integration', () => {
       baseUrl: 'https://api.bimpeai.test',
       maxRetries: 3,
     });
-    await client.agents.create({ name: 'A' });
+    await client.agents.create({ workflow_id: 'wf_1', name: 'A', description: 'Support agent' });
     expect(seenKeys).toHaveLength(3);
     expect(new Set(seenKeys).size).toBe(1);
   });

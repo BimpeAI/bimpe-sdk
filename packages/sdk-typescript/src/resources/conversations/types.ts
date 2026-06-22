@@ -1,33 +1,63 @@
 export type ConversationChannel =
   | 'whatsapp'
-  | 'messenger'
-  | 'instagram'
   | 'webchat'
+  | 'telephony'
   | 'test_whatsapp'
-  | 'test_messenger'
-  | 'test_instagram';
+  | 'test_webchat'
+  | 'test_telephony';
+
+export type MessageRole = 'user' | 'assistant';
 
 export interface Conversation {
   readonly id: string;
   readonly channel_type: string;
   readonly channel_id: string | null;
+  readonly channel_user_id: string | null;
+  readonly channel_user_username: string | null;
   readonly is_test_channel: boolean;
-  readonly full_name: string | null;
-  readonly email: string | null;
-  readonly phone_number: string | null;
-  readonly channel_username: string | null;
   readonly is_ai_chat_paused: boolean;
+  readonly needs_attention: boolean;
   readonly last_message_at: string | null;
+  readonly last_seen: string | null;
   readonly last_message_preview: string | null;
   readonly created_at: string;
   readonly updated_at: string;
+}
+
+export interface ConversationDetail extends Conversation {
+  readonly full_name: string | null;
+  readonly email: string | null;
+  readonly phone_number: string | null;
+  readonly profile_picture: string | null;
 }
 
 export interface ListConversationsQuery {
   page?: number;
   limit?: number;
   search?: string;
+  sort?: string;
   channel?: ConversationChannel;
+  is_test_channel?: boolean;
+  is_ai_chat_paused?: boolean;
+  needs_attention?: boolean;
+}
+
+export interface CreateConversationMessageBody {
+  message: string;
+  role?: MessageRole;
+  conversation_id?: string;
+  channel_type?: 'whatsapp' | 'webchat' | 'telephony';
+  channel_user_id?: string;
+  channel_username?: string;
+  is_test_channel?: boolean;
+}
+
+export interface SetAiStatusBody {
+  is_ai_chat_paused: boolean;
+}
+
+export interface ConversationAiStatus {
+  readonly is_ai_chat_paused?: boolean;
 }
 
 export interface Message {
@@ -36,6 +66,7 @@ export interface Message {
   readonly message: string | null;
   readonly message_type: string | null;
   readonly created_at: string;
+  readonly attachments?: MessageAttachment[];
 }
 
 export interface MessageAttachment {
@@ -45,12 +76,14 @@ export interface MessageAttachment {
 
 export interface SendMessageBody {
   message: string;
-  attachments?: MessageAttachment[];
+  role?: MessageRole;
 }
 
 export interface ListMessagesQuery {
   page?: number;
   limit?: number;
+  search?: string;
+  sort?: string;
 }
 
 export interface StreamTicket {
