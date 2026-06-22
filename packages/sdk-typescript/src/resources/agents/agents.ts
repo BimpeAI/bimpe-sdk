@@ -2,24 +2,29 @@ import { Page, PagePromise } from '../../core/pagination';
 import type { ListQuery, RequestExecutor, RequestOptions } from '../../core/types';
 import { AgentActions } from './actions';
 import { AgentChannels } from './channels';
-import { AgentConversationFlows } from './conversation-flows';
 import { AgentIntegrations } from './integrations';
 import { AgentKnowledgeBases } from './knowledge-bases';
-import type { Agent, AgentDetail, CreateAgentBody, UpdateAgentBody } from './types';
+import type {
+  Agent,
+  AgentCreateResponse,
+  AgentDetail,
+  AgentLiveStatus,
+  CreateAgentBody,
+  UpdateAgentBody,
+  UpdateLiveStatusBody,
+} from './types';
 
 type Client = RequestExecutor;
 
 export class Agents {
   readonly integrations: AgentIntegrations;
   readonly channels: AgentChannels;
-  readonly conversationFlows: AgentConversationFlows;
   readonly actions: AgentActions;
   readonly knowledgeBases: AgentKnowledgeBases;
 
   constructor(private readonly client: Client) {
     this.integrations = new AgentIntegrations(client);
     this.channels = new AgentChannels(client);
-    this.conversationFlows = new AgentConversationFlows(client);
     this.actions = new AgentActions(client);
     this.knowledgeBases = new AgentKnowledgeBases(client);
   }
@@ -28,8 +33,8 @@ export class Agents {
     return new PagePromise(() => this.fetchPage(query.page ?? 1, query));
   }
 
-  async create(body: CreateAgentBody, options: RequestOptions = {}): Promise<Agent> {
-    const res = await this.client.request<Agent>({
+  async create(body: CreateAgentBody, options: RequestOptions = {}): Promise<AgentCreateResponse> {
+    const res = await this.client.request<AgentCreateResponse>({
       method: 'POST',
       path: '/agents',
       body,
@@ -51,6 +56,20 @@ export class Agents {
       method: 'PATCH',
       path: `/agents/${agentId}`,
       body,
+    });
+    return res.data;
+  }
+
+  async updateLiveStatus(
+    agentId: string,
+    body: UpdateLiveStatusBody,
+    options: RequestOptions = {},
+  ): Promise<AgentLiveStatus> {
+    const res = await this.client.request<AgentLiveStatus>({
+      method: 'PATCH',
+      path: `/agents/${agentId}/live-status`,
+      body,
+      ...options,
     });
     return res.data;
   }
