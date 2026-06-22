@@ -3,6 +3,55 @@ import pytest
 import bimpeai
 from bimpeai import AsyncBimpeAI, BimpeAI, UserError
 
+EXPECTED_ALL = [
+    "Agent",
+    "AgentAction",
+    "AgentChannel",
+    "AgentCreateResponse",
+    "AgentDetail",
+    "AgentIntegration",
+    "AgentLiveStatus",
+    "APIConnectionError",
+    "APIError",
+    "APINotImplementedError",
+    "APITimeoutError",
+    "ApiResponse",
+    "AsyncBimpeAI",
+    "AsyncPage",
+    "AuthenticationError",
+    "BadRequestError",
+    "BimpeAI",
+    "BimpeAIError",
+    "BulkActionUpdate",
+    "Call",
+    "CallDetail",
+    "ConflictError",
+    "Conversation",
+    "ConversationDetail",
+    "ErrorCode",
+    "IntegrationSummary",
+    "InternalServerError",
+    "KnowledgeBaseItem",
+    "KnowledgeBaseSummary",
+    "MakeCallResult",
+    "Message",
+    "NotFoundError",
+    "Page",
+    "PaginationMeta",
+    "PermissionDeniedError",
+    "RateLimitError",
+    "Rule",
+    "StreamHeartbeatEvent",
+    "StreamMessageEvent",
+    "StreamTicket",
+    "UserError",
+    "ValidationError",
+    "Workflow",
+    "WorkflowDetail",
+    "WorkflowSummary",
+    "__version__",
+]
+
 
 def test_sync_client_exposes_resources() -> None:
     client = BimpeAI(api_key="sk_test")
@@ -26,21 +75,10 @@ def test_user_error_on_empty_key() -> None:
         BimpeAI(api_key="")
 
 
-def test_public_exports_present() -> None:
-    for name in [
-        "BimpeAI",
-        "AsyncBimpeAI",
-        "BimpeAIError",
-        "APIError",
-        "RateLimitError",
-        "APINotImplementedError",
-        "Page",
-        "AsyncPage",
-        "Agent",
-        "Workflow",
-        "Conversation",
-        "Message",
-        "StreamMessageEvent",
-        "__version__",
-    ]:
-        assert hasattr(bimpeai, name)
+def test_all_matches_expected_exactly() -> None:
+    assert bimpeai.__all__ == EXPECTED_ALL
+
+
+def test_all_names_are_importable() -> None:
+    for name in bimpeai.__all__:
+        assert hasattr(bimpeai, name), name

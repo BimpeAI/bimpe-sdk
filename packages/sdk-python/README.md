@@ -79,23 +79,41 @@ Every client exposes four resources: `agents`, `workflows`, `conversations`, and
 
 ```python
 agents = client.agents.list(page=2, limit=50, search="support", sort="-created_at")
-agent = client.agents.create(name="Support bot", description="Tier 1 support", idempotency_key="op-1")
+agent = client.agents.create(
+    workflow_id=workflow_id,
+    name="Support bot",
+    description="Handles billing questions",
+    persona="professional",
+    idempotency_key="op-1",
+)
 detail = client.agents.retrieve(agent.id)
 client.agents.update(agent.id, description="Now tier 2 as well")
 ```
 
-`list` returns a `Page[Agent]`. `create` and `update` take the agent fields as keyword arguments (`name`, `description`, `system_prompt`, `language`, `persona`, `agent_workflow_id`, `rules`, `timezone`, `logo`, the `business_*` fields, and `escalation_email`); only `name` is required on create, and every field is optional on update. `create` and `update` return an `Agent`, while `retrieve` returns an `AgentDetail`, which is an `Agent` plus the agent's integrations, channels, conversation flows, actions, and knowledge bases inlined.
+`list` returns a `Page[Agent]`. `create` takes the agent fields as keyword arguments where `workflow_id`, `name`, and `description` are required, plus the optional `language`, `persona`, `timezone`, `logo`, the `business_*` fields, and `escalation_email`; it returns an `AgentCreateResponse`, which is an `Agent` plus the nested `workflow`. `update` takes the same fields, all optional, and returns an `Agent`. `persona` is the enum `"professional" | "friendly" | "concise"`. `retrieve` returns an `AgentDetail`, which is an `Agent` plus the agent's knowledge bases, integrations, and channels inlined.
+
+Move an agent between its lifecycle states with `update_live_status`. The `status` is `"development" | "live" | "paused"`, and `status_reason` is optional. It returns an `AgentLiveStatus`.
+
+```python
+client.agents.update_live_status(agent_id, status="live", status_reason="Launch")
+```
 
 The read-only sub-resources each return a plain list.
 
 ```python
 client.agents.integrations.list(agent_id)
 client.agents.channels.list(agent_id)
-client.agents.conversation_flows.list(agent_id)
 client.agents.actions.list(agent_id)
 ```
 
-Knowledge bases support full CRUD. The create body is a text source or a URL source, distinguished by its `type`, and is passed as a single dict so the union stays well typed.
+Enable or disable a set of agent actions in bulk by id. Both take `action_ids` as a keyword argument and return a `BulkActionUpdate` with the `updated_count`.
+
+```python
+client.agents.actions.enable(agent_id, action_ids=["act_1", "act_2"])
+client.agents.actions.disable(agent_id, action_ids=["act_1"])
+```
+
+Knowledge bases support full CRUD and return a `KnowledgeBaseItem`. The create body is a text source or a URL source, distinguished by its `type`, and is passed as a single dict so the union stays well typed.
 
 ```python
 client.agents.knowledge_bases.list(agent_id)
@@ -109,13 +127,16 @@ client.agents.knowledge_bases.delete(agent_id, kb_id)
 
 ```python
 workflows = client.workflows.list(scope="public", search="triage", sort="-created_at")
-workflow = client.workflows.create(name="Triage", idempotency_key="op-2")
+workflow = client.workflows.create(
+    name="Triage", system_prompt="You triage incoming support requests.", idempotency_key="op-2"
+)
+copy = client.workflows.clone(source_workflow_id=workflow.id)
 client.workflows.retrieve(workflow.id)
 client.workflows.update(workflow.id, tags=["v2"])
 client.workflows.delete(workflow.id)
 ```
 
-`scope` is either `owned` or `public`. `list` returns a `Page[WorkflowSummary]`; `retrieve`, `create`, and `update` return a `Workflow`, which is the summary plus `system_prompt`, `rules`, `flows`, `tags`, and `prompt_config`. As with agents, create and update take the fields as keyword arguments and only `name` is required on create.
+`scope` is `owned`, `public`, or `accessible`. `list` returns a `Page[Workflow]` (the full object, the same shape the reads return), where a `Workflow` carries `system_prompt`, typed `rules`, `flows`, `guide`, `faq`, and `tags`. `create` takes the workflow fields as keyword arguments where `name` and `system_prompt` are required. `clone` takes `source_workflow_id` and returns a new team-owned copy. `retrieve`, `create`, `clone`, and `update` all return a `Workflow`.
 
 ## Conversations and messages
 
@@ -123,11 +144,22 @@ client.workflows.delete(workflow.id)
 conversations = client.conversations.list(agent_id, channel="whatsapp", search="invoice")
 conversation = client.conversations.retrieve(agent_id, conversation_id)
 
+# Start a conversation or send into one by channel address.
+started = client.conversations.send(
+    agent_id, message="Hello", channel_type="whatsapp", channel_user_id="+15551234567"
+)
+
+# Pause or resume the agent's automatic replies on one conversation.
+client.conversations.set_ai_status(agent_id, conversation_id, is_ai_chat_paused=True)
+
 messages = client.conversations.messages.list(agent_id, conversation_id)
 sent = client.conversations.messages.send(agent_id, conversation_id, message="Hello")
+message = client.conversations.messages.retrieve(agent_id, conversation_id, sent.id)
 ```
 
-`channel` accepts `whatsapp`, `messenger`, `instagram`, `webchat`, and the `test_*` variants of each. `conversations.list` returns a `Page[Conversation]` and `messages.list` returns a `Page[Message]`. `send` takes `message` and optional `attachments` (each `{"type": ..., "url": ...}`) and returns the created `Message`.
+`channel` accepts `whatsapp`, `webchat`, `telephony`, and the `test_*` variant of each. `conversations.list` returns a `Page[Conversation]`, `retrieve` returns a `ConversationDetail` (a `Conversation` plus `full_name`, `email`, `phone_number`, and `profile_picture`), and `messages.list` returns a `Page[Message]`.
+
+`conversations.send` creates or appends to a conversation, addressing it either by `conversation_id` or by `channel_type` plus the channel address; only `message` is required, and it returns the created `Message`. `conversations.set_ai_status` takes `is_ai_chat_paused` and returns a `ConversationAiStatus`. `messages.send` takes `message` plus an optional `role` for a known conversation; it no longer accepts attachments. `messages.retrieve` fetches one `Message` by id.
 
 ## Streaming messages
 
@@ -158,16 +190,15 @@ print(ticket.ticket, ticket.expires_in)
 
 ## Calls
 
-`calls.list()` is wired up, but the API answers with 501 today, so it raises `APINotImplementedError`. The call site will keep working and start returning data once the endpoint ships, without an SDK change.
+Calls are agent-scoped and live. Every method takes the agent id first.
 
 ```python
-from bimpeai import APINotImplementedError
-
-try:
-    client.calls.list()
-except APINotImplementedError:
-    ...  # not available yet
+calls = client.calls.list(agent_id, status="ended", is_test_call=False, sort="-created_on")
+result = client.calls.make(agent_id, {"destination": "+15551234567", "is_test_call": False})
+detail = client.calls.retrieve(agent_id, result.call_id)
 ```
+
+`list` returns a `Page[Call]`. `make` takes a `MakeCallBody` dict (`destination` and `is_test_call`) and returns a `MakeCallResult`, whose `status` is `"initiated" | "busy" | "failed"`, with optional `call_id` and `detail`. `retrieve` returns a `CallDetail`, which is a `Call` plus `started_at`, `answered_at`, and the `conversation_logs`.
 
 ## Pagination
 
@@ -206,7 +237,7 @@ Every error raised by the SDK subclasses `BimpeAIError`. A `UserError` means the
 from bimpeai import RateLimitError, ValidationError
 
 try:
-    client.agents.create(name="")
+    client.agents.create(workflow_id=workflow_id, name="", description="")
 except ValidationError as err:
     for field in err.field_errors:
         print(field["path"], field["message"])
@@ -241,18 +272,20 @@ By default the SDK retries up to twice. It retries connection errors and timeout
 
 ```python
 client = BimpeAI(api_key="sk_...", max_retries=3)
-client.agents.create(name="A", max_retries=0)  # this call only
+client.agents.create(workflow_id=workflow_id, name="A", description="First", max_retries=0)
 ```
 
 Write requests accept an `idempotency_key`. When retries are on and you do not supply one, the SDK generates a key once per call and reuses it across attempts, so a retried write cannot create a duplicate. The key is sent as the `Idempotency-Key` header.
 
 ```python
-client.agents.create(name="A", idempotency_key="create-A-2026-06-14")
+client.agents.create(
+    workflow_id=workflow_id, name="A", description="First", idempotency_key="create-A-2026-06-14"
+)
 ```
 
 ## Per-call options
 
-The write methods (`agents.create`, `agents.update`, `agents.knowledge_bases.create`, `agents.knowledge_bases.update`, `workflows.create`, `workflows.update`, `conversations.messages.send`, and `conversations.messages.stream_ticket`) accept `idempotency_key`, `timeout`, `max_retries`, and `headers` as keyword arguments alongside the body. Each overrides the client-level setting for that one call. `headers` is merged into the request headers, which is the seam for sending a request id you control through `X-Request-Id`.
+The write methods that take options (`agents.create`, `agents.update_live_status`, `agents.actions.enable`, `agents.actions.disable`, `agents.knowledge_bases.create`, `workflows.create`, `workflows.clone`, `conversations.send`, `conversations.set_ai_status`, `conversations.messages.send`, `conversations.messages.stream_ticket`, and `calls.make`) accept `idempotency_key`, `timeout`, `max_retries`, and `headers` as keyword arguments alongside the body. Each overrides the client-level setting for that one call. `headers` is merged into the request headers, which is the seam for sending a request id you control through `X-Request-Id`.
 
 ## Configuration
 

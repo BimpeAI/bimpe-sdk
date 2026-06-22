@@ -8,7 +8,14 @@ BASE = "https://api.bimpe.ai/api/v1/console"
 
 
 def agent(id_: str) -> dict[str, object]:
-    return {"id": id_, "name": "Bot", "status": "active", "created_at": "t", "updated_at": "t"}
+    return {
+        "id": id_,
+        "name": "Bot",
+        "description": "A support bot",
+        "status": "live",
+        "created_at": "t",
+        "updated_at": "t",
+    }
 
 
 @respx.mock

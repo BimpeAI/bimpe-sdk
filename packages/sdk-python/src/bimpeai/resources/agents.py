@@ -9,15 +9,19 @@ from ..pagination import AsyncPage, Page
 from ..types.agents import (
     Agent,
     AgentAction,
+    AgentChannel,
+    AgentCreateResponse,
     AgentDetail,
-    Channel,
-    ConversationFlow,
+    AgentIntegration,
+    AgentLiveStatus,
+    BulkActionIdsBody,
+    BulkActionUpdate,
     CreateAgentBody,
     CreateKnowledgeBaseBody,
-    Integration,
-    KnowledgeBase,
+    KnowledgeBaseItem,
     UpdateAgentBody,
     UpdateKnowledgeBaseBody,
+    UpdateLiveStatusBody,
 )
 from ._specs import (
     AsyncTransport,
@@ -25,11 +29,14 @@ from ._specs import (
     create_agent_spec,
     create_knowledge_base_spec,
     delete_knowledge_base_spec,
+    disable_actions_spec,
+    enable_actions_spec,
     list_agent_subresource_spec,
     list_agents_spec,
     retrieve_agent_spec,
     update_agent_spec,
     update_knowledge_base_spec,
+    update_live_status_spec,
 )
 
 
@@ -38,7 +45,6 @@ class Agents:
         self._client = client
         self.integrations = _AgentIntegrations(client)
         self.channels = _AgentChannels(client)
-        self.conversation_flows = _AgentConversationFlows(client)
         self.actions = _AgentActions(client)
         self.knowledge_bases = _AgentKnowledgeBases(client)
 
@@ -67,7 +73,7 @@ class Agents:
         max_retries: int | None = None,
         headers: dict[str, str] | None = None,
         **body: Unpack[CreateAgentBody],
-    ) -> Agent:
+    ) -> AgentCreateResponse:
         options = RequestOptions(
             idempotency_key=idempotency_key,
             timeout=timeout,
@@ -75,7 +81,7 @@ class Agents:
             headers=headers,
         )
         resp = self._client.request(create_agent_spec(dict(body), options))
-        return Agent.model_validate(resp.data)
+        return AgentCreateResponse.model_validate(resp.data)
 
     def retrieve(self, agent_id: str) -> AgentDetail:
         resp = self._client.request(retrieve_agent_spec(agent_id))
@@ -85,32 +91,42 @@ class Agents:
         resp = self._client.request(update_agent_spec(agent_id, dict(body)))
         return Agent.model_validate(resp.data)
 
+    def update_live_status(
+        self,
+        agent_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[UpdateLiveStatusBody],
+    ) -> AgentLiveStatus:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = self._client.request(update_live_status_spec(agent_id, dict(body), options))
+        return AgentLiveStatus.model_validate(resp.data)
+
 
 class _AgentIntegrations:
     def __init__(self, client: SyncTransport) -> None:
         self._client = client
 
-    def list(self, agent_id: str) -> list[Integration]:
+    def list(self, agent_id: str) -> list[AgentIntegration]:
         resp = self._client.request(list_agent_subresource_spec(agent_id, "integrations"))
-        return [Integration.model_validate(item) for item in resp.data]
+        return [AgentIntegration.model_validate(item) for item in resp.data]
 
 
 class _AgentChannels:
     def __init__(self, client: SyncTransport) -> None:
         self._client = client
 
-    def list(self, agent_id: str) -> list[Channel]:
+    def list(self, agent_id: str) -> list[AgentChannel]:
         resp = self._client.request(list_agent_subresource_spec(agent_id, "channels"))
-        return [Channel.model_validate(item) for item in resp.data]
-
-
-class _AgentConversationFlows:
-    def __init__(self, client: SyncTransport) -> None:
-        self._client = client
-
-    def list(self, agent_id: str) -> list[ConversationFlow]:
-        resp = self._client.request(list_agent_subresource_spec(agent_id, "conversation_flows"))
-        return [ConversationFlow.model_validate(item) for item in resp.data]
+        return [AgentChannel.model_validate(item) for item in resp.data]
 
 
 class _AgentActions:
@@ -121,14 +137,52 @@ class _AgentActions:
         resp = self._client.request(list_agent_subresource_spec(agent_id, "actions"))
         return [AgentAction.model_validate(item) for item in resp.data]
 
+    def enable(
+        self,
+        agent_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[BulkActionIdsBody],
+    ) -> BulkActionUpdate:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = self._client.request(enable_actions_spec(agent_id, dict(body), options))
+        return BulkActionUpdate.model_validate(resp.data)
+
+    def disable(
+        self,
+        agent_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[BulkActionIdsBody],
+    ) -> BulkActionUpdate:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = self._client.request(disable_actions_spec(agent_id, dict(body), options))
+        return BulkActionUpdate.model_validate(resp.data)
+
 
 class _AgentKnowledgeBases:
     def __init__(self, client: SyncTransport) -> None:
         self._client = client
 
-    def list(self, agent_id: str) -> list[KnowledgeBase]:
+    def list(self, agent_id: str) -> list[KnowledgeBaseItem]:
         resp = self._client.request(list_agent_subresource_spec(agent_id, "knowledge_bases"))
-        return [KnowledgeBase.model_validate(item) for item in resp.data]
+        return [KnowledgeBaseItem.model_validate(item) for item in resp.data]
 
     def create(
         self,
@@ -139,7 +193,7 @@ class _AgentKnowledgeBases:
         timeout: float | None = None,
         max_retries: int | None = None,
         headers: dict[str, str] | None = None,
-    ) -> KnowledgeBase:
+    ) -> KnowledgeBaseItem:
         options = RequestOptions(
             idempotency_key=idempotency_key,
             timeout=timeout,
@@ -147,13 +201,13 @@ class _AgentKnowledgeBases:
             headers=headers,
         )
         resp = self._client.request(create_knowledge_base_spec(agent_id, dict(body), options))
-        return KnowledgeBase.model_validate(resp.data)
+        return KnowledgeBaseItem.model_validate(resp.data)
 
     def update(
         self, agent_id: str, kb_id: str, **body: Unpack[UpdateKnowledgeBaseBody]
-    ) -> KnowledgeBase:
+    ) -> KnowledgeBaseItem:
         resp = self._client.request(update_knowledge_base_spec(agent_id, kb_id, dict(body)))
-        return KnowledgeBase.model_validate(resp.data)
+        return KnowledgeBaseItem.model_validate(resp.data)
 
     def delete(self, agent_id: str, kb_id: str) -> None:
         self._client.request(delete_knowledge_base_spec(agent_id, kb_id))
@@ -164,7 +218,6 @@ class AsyncAgents:
         self._client = client
         self.integrations = _AsyncAgentIntegrations(client)
         self.channels = _AsyncAgentChannels(client)
-        self.conversation_flows = _AsyncAgentConversationFlows(client)
         self.actions = _AsyncAgentActions(client)
         self.knowledge_bases = _AsyncAgentKnowledgeBases(client)
 
@@ -193,7 +246,7 @@ class AsyncAgents:
         max_retries: int | None = None,
         headers: dict[str, str] | None = None,
         **body: Unpack[CreateAgentBody],
-    ) -> Agent:
+    ) -> AgentCreateResponse:
         options = RequestOptions(
             idempotency_key=idempotency_key,
             timeout=timeout,
@@ -201,7 +254,7 @@ class AsyncAgents:
             headers=headers,
         )
         resp = await self._client.request(create_agent_spec(dict(body), options))
-        return Agent.model_validate(resp.data)
+        return AgentCreateResponse.model_validate(resp.data)
 
     async def retrieve(self, agent_id: str) -> AgentDetail:
         resp = await self._client.request(retrieve_agent_spec(agent_id))
@@ -210,6 +263,25 @@ class AsyncAgents:
     async def update(self, agent_id: str, **body: Unpack[UpdateAgentBody]) -> Agent:
         resp = await self._client.request(update_agent_spec(agent_id, dict(body)))
         return Agent.model_validate(resp.data)
+
+    async def update_live_status(
+        self,
+        agent_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[UpdateLiveStatusBody],
+    ) -> AgentLiveStatus:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = await self._client.request(update_live_status_spec(agent_id, dict(body), options))
+        return AgentLiveStatus.model_validate(resp.data)
 
 
 async def _alist_sub(client: AsyncTransport, agent_id: str, name: str) -> list[Any]:
@@ -221,27 +293,18 @@ class _AsyncAgentIntegrations:
     def __init__(self, client: AsyncTransport) -> None:
         self._client = client
 
-    async def list(self, agent_id: str) -> list[Integration]:
+    async def list(self, agent_id: str) -> list[AgentIntegration]:
         items = await _alist_sub(self._client, agent_id, "integrations")
-        return [Integration.model_validate(x) for x in items]
+        return [AgentIntegration.model_validate(x) for x in items]
 
 
 class _AsyncAgentChannels:
     def __init__(self, client: AsyncTransport) -> None:
         self._client = client
 
-    async def list(self, agent_id: str) -> list[Channel]:
+    async def list(self, agent_id: str) -> list[AgentChannel]:
         items = await _alist_sub(self._client, agent_id, "channels")
-        return [Channel.model_validate(x) for x in items]
-
-
-class _AsyncAgentConversationFlows:
-    def __init__(self, client: AsyncTransport) -> None:
-        self._client = client
-
-    async def list(self, agent_id: str) -> list[ConversationFlow]:
-        items = await _alist_sub(self._client, agent_id, "conversation_flows")
-        return [ConversationFlow.model_validate(x) for x in items]
+        return [AgentChannel.model_validate(x) for x in items]
 
 
 class _AsyncAgentActions:
@@ -252,14 +315,52 @@ class _AsyncAgentActions:
         items = await _alist_sub(self._client, agent_id, "actions")
         return [AgentAction.model_validate(x) for x in items]
 
+    async def enable(
+        self,
+        agent_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[BulkActionIdsBody],
+    ) -> BulkActionUpdate:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = await self._client.request(enable_actions_spec(agent_id, dict(body), options))
+        return BulkActionUpdate.model_validate(resp.data)
+
+    async def disable(
+        self,
+        agent_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[BulkActionIdsBody],
+    ) -> BulkActionUpdate:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = await self._client.request(disable_actions_spec(agent_id, dict(body), options))
+        return BulkActionUpdate.model_validate(resp.data)
+
 
 class _AsyncAgentKnowledgeBases:
     def __init__(self, client: AsyncTransport) -> None:
         self._client = client
 
-    async def list(self, agent_id: str) -> list[KnowledgeBase]:
+    async def list(self, agent_id: str) -> list[KnowledgeBaseItem]:
         items = await _alist_sub(self._client, agent_id, "knowledge_bases")
-        return [KnowledgeBase.model_validate(x) for x in items]
+        return [KnowledgeBaseItem.model_validate(x) for x in items]
 
     async def create(
         self,
@@ -270,7 +371,7 @@ class _AsyncAgentKnowledgeBases:
         timeout: float | None = None,
         max_retries: int | None = None,
         headers: dict[str, str] | None = None,
-    ) -> KnowledgeBase:
+    ) -> KnowledgeBaseItem:
         options = RequestOptions(
             idempotency_key=idempotency_key,
             timeout=timeout,
@@ -278,13 +379,13 @@ class _AsyncAgentKnowledgeBases:
             headers=headers,
         )
         resp = await self._client.request(create_knowledge_base_spec(agent_id, dict(body), options))
-        return KnowledgeBase.model_validate(resp.data)
+        return KnowledgeBaseItem.model_validate(resp.data)
 
     async def update(
         self, agent_id: str, kb_id: str, **body: Unpack[UpdateKnowledgeBaseBody]
-    ) -> KnowledgeBase:
+    ) -> KnowledgeBaseItem:
         resp = await self._client.request(update_knowledge_base_spec(agent_id, kb_id, dict(body)))
-        return KnowledgeBase.model_validate(resp.data)
+        return KnowledgeBaseItem.model_validate(resp.data)
 
     async def delete(self, agent_id: str, kb_id: str) -> None:
         await self._client.request(delete_knowledge_base_spec(agent_id, kb_id))

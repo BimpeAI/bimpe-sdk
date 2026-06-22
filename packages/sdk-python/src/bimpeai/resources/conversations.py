@@ -18,11 +18,20 @@ from .._sse import aparse_sse, parse_sse
 from ..pagination import AsyncPage, Page
 from ..types.conversations import (
     Conversation,
+    ConversationAiStatus,
     ConversationChannel,
+    ConversationDetail,
+    CreateConversationMessageBody,
     Message,
     SendMessageBody,
+    SetAiStatusBody,
     StreamMessageEvent,
     StreamTicket,
+)
+from ._specs import (
+    create_conversation_message_spec,
+    retrieve_message_spec,
+    set_ai_status_spec,
 )
 
 _DEFAULT_STREAM_RETRIES = 5
@@ -44,12 +53,25 @@ def _list_conversations_spec(
     page: int,
     limit: int | None,
     search: str | None,
+    sort: str | None,
     channel: ConversationChannel | None,
+    is_test_channel: bool | None,
+    is_ai_chat_paused: bool | None,
+    needs_attention: bool | None,
 ) -> RequestSpec:
     return RequestSpec(
         method="GET",
         path=f"/agents/{agent_id}/conversations",
-        query={"page": page, "limit": limit, "search": search, "channel": channel},
+        query={
+            "page": page,
+            "limit": limit,
+            "search": search,
+            "sort": sort,
+            "channel": channel,
+            "is_test_channel": is_test_channel,
+            "is_ai_chat_paused": is_ai_chat_paused,
+            "needs_attention": needs_attention,
+        },
     )
 
 
@@ -58,12 +80,18 @@ def _retrieve_conversation_spec(agent_id: str, conversation_id: str) -> RequestS
 
 
 def _list_messages_spec(
-    agent_id: str, conversation_id: str, *, page: int, limit: int | None
+    agent_id: str,
+    conversation_id: str,
+    *,
+    page: int,
+    limit: int | None,
+    search: str | None,
+    sort: str | None,
 ) -> RequestSpec:
     return RequestSpec(
         method="GET",
         path=f"/agents/{agent_id}/conversations/{conversation_id}/messages",
-        query={"page": page, "limit": limit},
+        query={"page": page, "limit": limit, "search": search, "sort": sort},
     )
 
 
@@ -104,11 +132,20 @@ class Messages:
         self._client = client
 
     def list(
-        self, agent_id: str, conversation_id: str, *, page: int = 1, limit: int | None = None
+        self,
+        agent_id: str,
+        conversation_id: str,
+        *,
+        page: int = 1,
+        limit: int | None = None,
+        search: str | None = None,
+        sort: str | None = None,
     ) -> Page[Message]:
         def fetch(current: int) -> Page[Message]:
             resp = self._client.request(
-                _list_messages_spec(agent_id, conversation_id, page=current, limit=limit)
+                _list_messages_spec(
+                    agent_id, conversation_id, page=current, limit=limit, search=search, sort=sort
+                )
             )
             data = [Message.model_validate(item) for item in resp.data]
             return Page(data=data, meta=resp.meta, request_id=resp.request_id, fetcher=fetch)
@@ -134,6 +171,12 @@ class Messages:
         )
         resp = self._client.request(
             _send_message_spec(agent_id, conversation_id, dict(body), options)
+        )
+        return Message.model_validate(resp.data)
+
+    def retrieve(self, agent_id: str, conversation_id: str, message_id: str) -> Message:
+        resp = self._client.request(
+            retrieve_message_spec(agent_id, conversation_id, message_id)
         )
         return Message.model_validate(resp.data)
 
@@ -212,12 +255,24 @@ class Conversations:
         page: int = 1,
         limit: int | None = None,
         search: str | None = None,
+        sort: str | None = None,
         channel: ConversationChannel | None = None,
+        is_test_channel: bool | None = None,
+        is_ai_chat_paused: bool | None = None,
+        needs_attention: bool | None = None,
     ) -> Page[Conversation]:
         def fetch(current: int) -> Page[Conversation]:
             resp = self._client.request(
                 _list_conversations_spec(
-                    agent_id, page=current, limit=limit, search=search, channel=channel
+                    agent_id,
+                    page=current,
+                    limit=limit,
+                    search=search,
+                    sort=sort,
+                    channel=channel,
+                    is_test_channel=is_test_channel,
+                    is_ai_chat_paused=is_ai_chat_paused,
+                    needs_attention=needs_attention,
                 )
             )
             data = [Conversation.model_validate(item) for item in resp.data]
@@ -225,9 +280,50 @@ class Conversations:
 
         return fetch(page)
 
-    def retrieve(self, agent_id: str, conversation_id: str) -> Conversation:
+    def retrieve(self, agent_id: str, conversation_id: str) -> ConversationDetail:
         resp = self._client.request(_retrieve_conversation_spec(agent_id, conversation_id))
-        return Conversation.model_validate(resp.data)
+        return ConversationDetail.model_validate(resp.data)
+
+    def send(
+        self,
+        agent_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[CreateConversationMessageBody],
+    ) -> Message:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = self._client.request(create_conversation_message_spec(agent_id, dict(body), options))
+        return Message.model_validate(resp.data)
+
+    def set_ai_status(
+        self,
+        agent_id: str,
+        conversation_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[SetAiStatusBody],
+    ) -> ConversationAiStatus:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = self._client.request(
+            set_ai_status_spec(agent_id, conversation_id, dict(body), options)
+        )
+        return ConversationAiStatus.model_validate(resp.data)
 
 
 class AsyncMessages:
@@ -235,11 +331,20 @@ class AsyncMessages:
         self._client = client
 
     async def list(
-        self, agent_id: str, conversation_id: str, *, page: int = 1, limit: int | None = None
+        self,
+        agent_id: str,
+        conversation_id: str,
+        *,
+        page: int = 1,
+        limit: int | None = None,
+        search: str | None = None,
+        sort: str | None = None,
     ) -> AsyncPage[Message]:
         async def fetch(current: int) -> AsyncPage[Message]:
             resp = await self._client.request(
-                _list_messages_spec(agent_id, conversation_id, page=current, limit=limit)
+                _list_messages_spec(
+                    agent_id, conversation_id, page=current, limit=limit, search=search, sort=sort
+                )
             )
             data = [Message.model_validate(item) for item in resp.data]
             return AsyncPage(data=data, meta=resp.meta, request_id=resp.request_id, fetcher=fetch)
@@ -265,6 +370,12 @@ class AsyncMessages:
         )
         resp = await self._client.request(
             _send_message_spec(agent_id, conversation_id, dict(body), options)
+        )
+        return Message.model_validate(resp.data)
+
+    async def retrieve(self, agent_id: str, conversation_id: str, message_id: str) -> Message:
+        resp = await self._client.request(
+            retrieve_message_spec(agent_id, conversation_id, message_id)
         )
         return Message.model_validate(resp.data)
 
@@ -343,12 +454,24 @@ class AsyncConversations:
         page: int = 1,
         limit: int | None = None,
         search: str | None = None,
+        sort: str | None = None,
         channel: ConversationChannel | None = None,
+        is_test_channel: bool | None = None,
+        is_ai_chat_paused: bool | None = None,
+        needs_attention: bool | None = None,
     ) -> AsyncPage[Conversation]:
         async def fetch(current: int) -> AsyncPage[Conversation]:
             resp = await self._client.request(
                 _list_conversations_spec(
-                    agent_id, page=current, limit=limit, search=search, channel=channel
+                    agent_id,
+                    page=current,
+                    limit=limit,
+                    search=search,
+                    sort=sort,
+                    channel=channel,
+                    is_test_channel=is_test_channel,
+                    is_ai_chat_paused=is_ai_chat_paused,
+                    needs_attention=needs_attention,
                 )
             )
             data = [Conversation.model_validate(item) for item in resp.data]
@@ -356,6 +479,49 @@ class AsyncConversations:
 
         return await fetch(page)
 
-    async def retrieve(self, agent_id: str, conversation_id: str) -> Conversation:
+    async def retrieve(self, agent_id: str, conversation_id: str) -> ConversationDetail:
         resp = await self._client.request(_retrieve_conversation_spec(agent_id, conversation_id))
-        return Conversation.model_validate(resp.data)
+        return ConversationDetail.model_validate(resp.data)
+
+    async def send(
+        self,
+        agent_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[CreateConversationMessageBody],
+    ) -> Message:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = await self._client.request(
+            create_conversation_message_spec(agent_id, dict(body), options)
+        )
+        return Message.model_validate(resp.data)
+
+    async def set_ai_status(
+        self,
+        agent_id: str,
+        conversation_id: str,
+        *,
+        idempotency_key: str | None = None,
+        timeout: float | None = None,
+        max_retries: int | None = None,
+        headers: dict[str, str] | None = None,
+        **body: Unpack[SetAiStatusBody],
+    ) -> ConversationAiStatus:
+        options = RequestOptions(
+            idempotency_key=idempotency_key,
+            timeout=timeout,
+            max_retries=max_retries,
+            headers=headers,
+        )
+        resp = await self._client.request(
+            set_ai_status_spec(agent_id, conversation_id, dict(body), options)
+        )
+        return ConversationAiStatus.model_validate(resp.data)
