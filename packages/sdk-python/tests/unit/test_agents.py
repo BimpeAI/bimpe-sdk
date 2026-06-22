@@ -304,9 +304,7 @@ async def test_async_list_and_create() -> None:
 
 
 async def test_async_retrieve_and_actions() -> None:
-    detail_client = FakeAsync(
-        {**AGENT, "knowledge_bases": [], "integrations": [], "channels": []}
-    )
+    detail_client = FakeAsync({**AGENT, "knowledge_bases": [], "integrations": [], "channels": []})
     detail = await AsyncAgents(detail_client).retrieve("a_1")
     assert isinstance(detail, AgentDetail)
     assert detail_client.specs[-1] == RequestSpec(method="GET", path="/agents/a_1")

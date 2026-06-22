@@ -175,9 +175,7 @@ class Messages:
         return Message.model_validate(resp.data)
 
     def retrieve(self, agent_id: str, conversation_id: str, message_id: str) -> Message:
-        resp = self._client.request(
-            retrieve_message_spec(agent_id, conversation_id, message_id)
-        )
+        resp = self._client.request(retrieve_message_spec(agent_id, conversation_id, message_id))
         return Message.model_validate(resp.data)
 
     def stream_ticket(
