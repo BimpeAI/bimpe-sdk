@@ -3,6 +3,7 @@ import type { ApiResponse, InternalRequestSpec, RequestOptions, Transport } from
 import { Agents } from './resources/agents';
 import { Calls } from './resources/calls';
 import { Conversations } from './resources/conversations';
+import { PhoneNumbers } from './resources/phone-numbers';
 import { Workflows } from './resources/workflows';
 
 export type BimpeAIConfig = HttpClientConfig;
@@ -12,6 +13,7 @@ export class BimpeAI {
   readonly workflows: Workflows;
   readonly conversations: Conversations;
   readonly calls: Calls;
+  readonly phoneNumbers: PhoneNumbers;
   private readonly http: Transport;
 
   constructor(config: BimpeAIConfig) {
@@ -20,6 +22,7 @@ export class BimpeAI {
     this.workflows = new Workflows(this.http);
     this.conversations = new Conversations(this.http);
     this.calls = new Calls(this.http);
+    this.phoneNumbers = new PhoneNumbers(this.http);
   }
 
   request<T>(spec: InternalRequestSpec & RequestOptions): Promise<ApiResponse<T>> {

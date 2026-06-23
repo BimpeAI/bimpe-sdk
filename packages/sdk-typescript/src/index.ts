@@ -102,4 +102,12 @@ export type {
   MakeCallResult,
   MakeCallStatus,
 } from './resources/calls';
+export { PhoneNumberRequests, PhoneNumbers } from './resources/phone-numbers';
+export type {
+  CreatePhoneNumberRequestBody,
+  PhoneNumber,
+  PhoneNumberDetail,
+  PhoneNumberRegion,
+  UpdatePhoneNumberBody,
+} from './resources/phone-numbers';
 export { VERSION } from './version';

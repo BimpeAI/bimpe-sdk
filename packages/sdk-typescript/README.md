@@ -161,6 +161,29 @@ const detail = await bimpe.calls.retrieve(agentId, result.call_id!);
 
 `list` returns a `PagePromise<Call>`. `make` takes a `MakeCallBody` (`destination` and `is_test_call`), accepts per-call `RequestOptions`, and returns a `MakeCallResult` (`status` is `'initiated' | 'busy' | 'failed'`, with optional `call_id` and `detail`). `retrieve` returns a `CallDetail`, which is a `Call` plus `started_at`, `answered_at`, and the `conversation_logs`.
 
+### Phone numbers
+
+Phone numbers are team-scoped. You request a number, and once one is assigned you link it to an agent.
+
+```ts
+// Request a number for provisioning (fulfilled by BimpeAI).
+await bimpe.phoneNumbers.requests.create({
+  business_name: 'Acme Support Ltd',
+  intended_use: 'Inbound customer support',
+  region: 'ng',
+  agent_count: 1,
+  outbound_minutes: 500,
+});
+for await (const request of bimpe.phoneNumbers.requests.list()) console.log(request.e164);
+
+// List assignments, then link one to an agent and label it.
+const numbers = await bimpe.phoneNumbers.list();
+const detail = await bimpe.phoneNumbers.retrieve(numbers.data[0]!.id);
+await bimpe.phoneNumbers.update(detail.id, { agent_id: agentId, label: 'Support line' });
+```
+
+`list` and `requests.list` return a `PagePromise<PhoneNumber>` (`id`, `agent_id`, `label`, `e164`). `requests.create` takes a `CreatePhoneNumberRequestBody` (`business_name`, `intended_use`, `region` of `'us' | 'uk' | 'eu' | 'ng'`, `agent_count`, `outbound_minutes`, and optional `submitted_by_agent_id`) and returns nothing. `retrieve` and `update` return a `PhoneNumberDetail`, which is a `PhoneNumber` plus `created_at`, `updated_at`, and `inbound_enabled`. `update` takes an `UpdatePhoneNumberBody` (`agent_id`, where `null` unassigns, and `label`) and accepts per-call `RequestOptions`. A number linked to an agent is the live telephony channel that `calls.make({ is_test_call: false })` dials out over.
+
 ## Pagination
 
 Every `list` returns a `PagePromise`, which is both a promise and an async iterable. Await it to get a single `Page`, or iterate it with `for await` to walk every item across pages, fetching the next page only when the current one runs out.
@@ -252,7 +275,7 @@ await bimpe.agents.create(
 
 ## Per-call options
 
-The write methods that accept an `options` argument (`agents.create`, `agents.knowledgeBases.create`, `workflows.create`, `workflows.clone`, `conversations.send`, `conversations.setAiStatus`, `conversations.messages.send`, `calls.make`, plus `streamTicket`) take a `RequestOptions`: `idempotencyKey`, `signal` (an `AbortSignal`), `timeout`, `maxRetries`, and `headers`. Each overrides the client-level setting for that one call, and `headers` is merged over the client's default headers.
+The write methods that accept an `options` argument (`agents.create`, `agents.knowledgeBases.create`, `workflows.create`, `workflows.clone`, `conversations.send`, `conversations.setAiStatus`, `conversations.messages.send`, `calls.make`, `phoneNumbers.update`, `phoneNumbers.requests.create`, plus `streamTicket`) take a `RequestOptions`: `idempotencyKey`, `signal` (an `AbortSignal`), `timeout`, `maxRetries`, and `headers`. Each overrides the client-level setting for that one call, and `headers` is merged over the client's default headers.
 
 ## Configuration
 
