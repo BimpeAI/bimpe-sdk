@@ -23,6 +23,7 @@ from ._retries import compute_backoff, should_retry
 from .resources.agents import AsyncAgents
 from .resources.calls import AsyncCalls
 from .resources.conversations import AsyncConversations
+from .resources.phone_numbers import AsyncPhoneNumbers
 from .resources.workflows import AsyncWorkflows
 
 _WRITE_METHODS = frozenset({"POST", "PATCH", "PUT", "DELETE"})
@@ -52,6 +53,7 @@ class AsyncBimpeAI(BaseClient):
         self.workflows = AsyncWorkflows(self)
         self.conversations = AsyncConversations(self)
         self.calls = AsyncCalls(self)
+        self.phone_numbers = AsyncPhoneNumbers(self)
 
     async def request(self, spec: RequestSpec) -> ApiResponse[Any]:
         url = self.build_url(spec.path)

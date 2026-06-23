@@ -23,6 +23,7 @@ from ._retries import compute_backoff, should_retry
 from .resources.agents import Agents
 from .resources.calls import Calls
 from .resources.conversations import Conversations
+from .resources.phone_numbers import PhoneNumbers
 from .resources.workflows import Workflows
 
 _WRITE_METHODS = frozenset({"POST", "PATCH", "PUT", "DELETE"})
@@ -52,6 +53,7 @@ class BimpeAI(BaseClient):
         self.workflows = Workflows(self)
         self.conversations = Conversations(self)
         self.calls = Calls(self)
+        self.phone_numbers = PhoneNumbers(self)
 
     def request(self, spec: RequestSpec) -> ApiResponse[Any]:
         url = self.build_url(spec.path)

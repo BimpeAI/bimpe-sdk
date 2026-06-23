@@ -39,6 +39,8 @@ EXPECTED_ALL = [
     "Page",
     "PaginationMeta",
     "PermissionDeniedError",
+    "PhoneNumber",
+    "PhoneNumberDetail",
     "RateLimitError",
     "Rule",
     "StreamHeartbeatEvent",
@@ -60,6 +62,8 @@ def test_sync_client_exposes_resources() -> None:
     assert client.conversations is not None
     assert client.conversations.messages is not None
     assert client.calls is not None
+    assert client.phone_numbers is not None
+    assert client.phone_numbers.requests is not None
     client.close()
 
 
@@ -67,6 +71,7 @@ async def test_async_client_exposes_resources() -> None:
     client = AsyncBimpeAI(api_key="sk_test")
     assert client.agents is not None
     assert client.conversations.messages is not None
+    assert client.phone_numbers.requests is not None
     await client.aclose()
 
 

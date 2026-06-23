@@ -147,3 +147,41 @@ def retrieve_call_spec(agent_id: str, call_id: str) -> RequestSpec:
 
 def clone_workflow_spec(body: dict[str, Any], options: RequestOptions) -> RequestSpec:
     return RequestSpec(method="POST", path="/workflows/clone", body=dict(body), options=options)
+
+
+def list_phone_numbers_spec(
+    *, page: int, limit: int | None, search: str | None, sort: str | None
+) -> RequestSpec:
+    return RequestSpec(
+        method="GET",
+        path="/phone-numbers",
+        query={"page": page, "limit": limit, "search": search, "sort": sort},
+    )
+
+
+def retrieve_phone_number_spec(phone_number_id: str) -> RequestSpec:
+    return RequestSpec(method="GET", path=f"/phone-numbers/{phone_number_id}")
+
+
+def update_phone_number_spec(
+    phone_number_id: str, body: dict[str, Any], options: RequestOptions
+) -> RequestSpec:
+    return RequestSpec(
+        method="PATCH", path=f"/phone-numbers/{phone_number_id}", body=dict(body), options=options
+    )
+
+
+def list_phone_number_requests_spec(
+    *, page: int, limit: int | None, search: str | None, sort: str | None
+) -> RequestSpec:
+    return RequestSpec(
+        method="GET",
+        path="/phone-numbers/request",
+        query={"page": page, "limit": limit, "search": search, "sort": sort},
+    )
+
+
+def create_phone_number_request_spec(body: dict[str, Any], options: RequestOptions) -> RequestSpec:
+    return RequestSpec(
+        method="POST", path="/phone-numbers/request", body=dict(body), options=options
+    )

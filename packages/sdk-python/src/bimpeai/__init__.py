@@ -43,6 +43,7 @@ from .types.conversations import (
     StreamMessageEvent,
     StreamTicket,
 )
+from .types.phone_numbers import PhoneNumber, PhoneNumberDetail
 from .types.workflows import Workflow, WorkflowDetail, WorkflowSummary
 
 __all__ = [
@@ -81,6 +82,8 @@ __all__ = [
     "Page",
     "PaginationMeta",
     "PermissionDeniedError",
+    "PhoneNumber",
+    "PhoneNumberDetail",
     "RateLimitError",
     "Rule",
     "StreamHeartbeatEvent",
