@@ -106,6 +106,34 @@ client.agents.channels.list(agent_id)
 client.agents.actions.list(agent_id)
 ```
 
+The integrations sub-resource is also writable through four connector families, each with `list`, `configure`, and `disconnect`. First-party connectors (`bimpeai`) and `pipedream` return an `OnboardingUrl` to finish setup in the dashboard; `custom_api` carries a `tools` sub-resource and `mcp_server` adds `discover` and `test`. The `configure` calls take the body as keyword arguments; `custom_api.tools.add` takes a single dict so its larger body stays well typed.
+
+```python
+client.agents.integrations.bimpeai.configure(
+    agent_id, type="stripe", public_key="pk_…", secret_key="sk_…", currency="NGN"
+)
+
+api = client.agents.integrations.custom_api.configure(
+    agent_id, name="Shop", base_url="https://api.example.com/v1"
+)
+client.agents.integrations.custom_api.tools.add(
+    agent_id, api.id, {"name": "Create order", "http_method": "POST", "url_template": "/orders"}
+)
+
+mcp = client.agents.integrations.mcp_server.configure(
+    agent_id, name="MR Guild", server_url="https://mrguild.com/api/mcp"
+)
+client.agents.integrations.mcp_server.discover(agent_id, mcp.id)
+
+client.agents.integrations.pipedream.configure(agent_id, app_slug="google-sheets")
+```
+
+Fetch the agent's test code and the per-channel deep links that start a test conversation with `get_test_code`.
+
+```python
+test_code = client.agents.get_test_code(agent_id)
+```
+
 Enable or disable a set of agent actions in bulk by id. Both take `action_ids` as a keyword argument and return a `BulkActionUpdate` with the `updated_count`.
 
 ```python
@@ -309,7 +337,7 @@ client.agents.create(
 
 ## Per-call options
 
-The write methods that take options (`agents.create`, `agents.update_live_status`, `agents.actions.enable`, `agents.actions.disable`, `agents.knowledge_bases.create`, `workflows.create`, `workflows.clone`, `conversations.send`, `conversations.set_ai_status`, `conversations.messages.send`, `conversations.messages.stream_ticket`, `calls.make`, `phone_numbers.update`, and `phone_numbers.requests.create`) accept `idempotency_key`, `timeout`, `max_retries`, and `headers` as keyword arguments alongside the body. Each overrides the client-level setting for that one call. `headers` is merged into the request headers, which is the seam for sending a request id you control through `X-Request-Id`.
+The write methods that take options (`agents.create`, `agents.update_live_status`, `agents.actions.enable`, `agents.actions.disable`, `agents.knowledge_bases.create`, the `agents.integrations` connector `configure` methods, `agents.integrations.custom_api.tools.add`, `workflows.create`, `workflows.clone`, `conversations.send`, `conversations.set_ai_status`, `conversations.messages.send`, `conversations.messages.stream_ticket`, `calls.make`, `phone_numbers.update`, and `phone_numbers.requests.create`) accept `idempotency_key`, `timeout`, `max_retries`, and `headers` as keyword arguments alongside the body. Each overrides the client-level setting for that one call. `headers` is merged into the request headers, which is the seam for sending a request id you control through `X-Request-Id`.
 
 ## Configuration
 
