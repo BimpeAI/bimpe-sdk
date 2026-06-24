@@ -171,3 +171,197 @@ export interface UpdateKnowledgeBaseBody {
   content?: string | null;
   url?: string | null;
 }
+
+export type BimpeaiIntegrationType =
+  | 'bumpa'
+  | 'google_calendar'
+  | 'google_sheets'
+  | 'paystack'
+  | 'stripe';
+
+export interface BimpeaiIntegration {
+  readonly id: string | null;
+  readonly type: BimpeaiIntegrationType;
+  readonly name: string;
+  readonly status: string;
+  readonly is_connected: boolean;
+}
+
+export interface BimpeaiConfigureBody {
+  type: BimpeaiIntegrationType;
+  token?: string;
+  public_key?: string;
+  secret_key?: string;
+  currency?: string;
+}
+
+export interface OnboardingUrl {
+  readonly onboarding_url: string;
+}
+
+export interface DeploymentWhatsAppChannel {
+  readonly is_enabled: boolean;
+  readonly start_message: string;
+  readonly phone_number?: string | null;
+  readonly url?: string | null;
+}
+
+export interface DeploymentInstagramChannel {
+  readonly is_enabled: boolean;
+  readonly start_message: string;
+  readonly username?: string | null;
+  readonly url?: string | null;
+}
+
+export interface DeploymentMessengerChannel {
+  readonly is_enabled: boolean;
+  readonly start_message: string;
+  readonly page?: string | null;
+  readonly url?: string | null;
+}
+
+export interface DeploymentTelephonyChannel {
+  readonly is_enabled: boolean;
+}
+
+export interface DeploymentChannels {
+  readonly whatsapp: DeploymentWhatsAppChannel;
+  readonly instagram: DeploymentInstagramChannel;
+  readonly messenger: DeploymentMessengerChannel;
+  readonly telephony: DeploymentTelephonyChannel;
+}
+
+export interface AgentTestCode {
+  readonly code: string;
+  readonly channels: DeploymentChannels;
+}
+
+export type IntegrationAuthType = 'none' | 'bearer' | 'basic' | 'api_key' | 'custom';
+
+export interface IntegrationAuthConfig {
+  token?: string;
+  api_key?: string;
+  header_name?: string;
+  username?: string;
+  password?: string;
+}
+
+export interface IntegrationTool {
+  readonly id: string;
+  readonly action_name: string;
+  readonly name: string;
+  readonly description: string | null;
+  readonly category: string;
+  readonly is_enabled: boolean;
+}
+
+export interface CustomApiConfig {
+  readonly name: string;
+  readonly base_url?: string;
+  readonly auth_type: string;
+}
+
+export interface CustomApiIntegration {
+  readonly id: string;
+  readonly config: CustomApiConfig;
+}
+
+export interface CustomApiConfigureBody {
+  name: string;
+  description?: string;
+  base_url?: string;
+  auth_type?: IntegrationAuthType;
+  auth_config?: IntegrationAuthConfig;
+  test_endpoint?: string;
+}
+
+export type ParameterType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object';
+
+export interface ParameterDefinition {
+  name: string;
+  type: ParameterType;
+  description: string;
+  required?: boolean;
+  items?: ParameterDefinition;
+  properties?: Record<string, unknown>;
+}
+
+export type ToolHttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+
+export interface ToolResponseMapping {
+  path?: string;
+  success_message?: string;
+  error_message?: string;
+}
+
+export interface CustomApiCreateToolBody {
+  name: string;
+  http_method: ToolHttpMethod;
+  url_template: string;
+  description?: string;
+  url_params?: ParameterDefinition[];
+  body_params?: ParameterDefinition[];
+  headers_template?: Record<string, unknown>;
+  body_template?: Record<string, unknown>;
+  auth_type?: IntegrationAuthType;
+  auth_config?: Record<string, unknown>;
+  response_mapping?: ToolResponseMapping;
+  category?: string;
+  require_human_approval?: boolean;
+  timeout?: number;
+}
+
+export type McpServerTransport = 'http_sse' | 'streamable_http';
+
+export interface McpServerConfig {
+  readonly name: string;
+  readonly server_url: string;
+  readonly transport: McpServerTransport;
+  readonly auth_type: string;
+}
+
+export interface McpServerIntegration {
+  readonly id: string;
+  readonly config: McpServerConfig;
+}
+
+export interface McpServerConfigureBody {
+  name: string;
+  server_url: string;
+  transport?: McpServerTransport;
+  auth_type?: IntegrationAuthType;
+  auth_config?: IntegrationAuthConfig;
+}
+
+export interface McpServerTestResult {
+  readonly success: boolean;
+  readonly message: string;
+  readonly error?: string;
+  readonly tools_count?: number;
+}
+
+export interface McpServerDiscoverResult {
+  readonly discovered: number;
+  readonly created: number;
+  readonly updated: number;
+  readonly disabled: number;
+}
+
+export interface PipedreamConfigureBody {
+  app_slug: string;
+  app_name?: string;
+  app_icon?: string;
+}
+
+export interface PipedreamIntegrationConfig {
+  readonly app_slug: string;
+  readonly app_name?: string;
+  readonly app_icon?: string | null;
+  readonly server_url: string;
+}
+
+export interface PipedreamIntegration {
+  readonly id: string;
+  readonly channel_type: string;
+  readonly config: PipedreamIntegrationConfig;
+}

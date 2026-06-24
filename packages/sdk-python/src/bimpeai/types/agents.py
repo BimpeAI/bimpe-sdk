@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, ConfigDict
 from typing_extensions import NotRequired, TypedDict
@@ -197,3 +197,191 @@ class UpdateKnowledgeBaseBody(TypedDict, total=False):
     description: str | None
     content: str | None
     url: str | None
+
+
+BimpeaiIntegrationType = Literal["bumpa", "google_calendar", "google_sheets", "paystack", "stripe"]
+
+
+class BimpeaiIntegration(_Model):
+    id: str | None = None
+    type: BimpeaiIntegrationType
+    name: str
+    status: str
+    is_connected: bool
+
+
+class OnboardingUrl(_Model):
+    onboarding_url: str
+
+
+class DeploymentWhatsAppChannel(_Model):
+    is_enabled: bool
+    start_message: str
+    phone_number: str | None = None
+    url: str | None = None
+
+
+class DeploymentInstagramChannel(_Model):
+    is_enabled: bool
+    start_message: str
+    username: str | None = None
+    url: str | None = None
+
+
+class DeploymentMessengerChannel(_Model):
+    is_enabled: bool
+    start_message: str
+    page: str | None = None
+    url: str | None = None
+
+
+class DeploymentTelephonyChannel(_Model):
+    is_enabled: bool
+
+
+class DeploymentChannels(_Model):
+    whatsapp: DeploymentWhatsAppChannel
+    instagram: DeploymentInstagramChannel
+    messenger: DeploymentMessengerChannel
+    telephony: DeploymentTelephonyChannel
+
+
+class AgentTestCode(_Model):
+    code: str
+    channels: DeploymentChannels
+
+
+class BimpeaiConfigureBody(TypedDict):
+    type: BimpeaiIntegrationType
+    token: NotRequired[str]
+    public_key: NotRequired[str]
+    secret_key: NotRequired[str]
+    currency: NotRequired[str]
+
+
+IntegrationAuthType = Literal["none", "bearer", "basic", "api_key", "custom"]
+ParameterType = Literal["string", "number", "integer", "boolean", "array", "object"]
+ToolHttpMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
+McpServerTransport = Literal["http_sse", "streamable_http"]
+
+
+class IntegrationTool(_Model):
+    id: str
+    action_name: str
+    name: str
+    description: str | None = None
+    category: str
+    is_enabled: bool
+
+
+class CustomApiConfig(_Model):
+    name: str
+    base_url: str | None = None
+    auth_type: str
+
+
+class CustomApiIntegration(_Model):
+    id: str
+    config: CustomApiConfig
+
+
+class McpServerConfig(_Model):
+    name: str
+    server_url: str
+    transport: McpServerTransport
+    auth_type: str
+
+
+class McpServerIntegration(_Model):
+    id: str
+    config: McpServerConfig
+
+
+class McpServerTestResult(_Model):
+    success: bool
+    message: str
+    error: str | None = None
+    tools_count: int | None = None
+
+
+class McpServerDiscoverResult(_Model):
+    discovered: int
+    created: int
+    updated: int
+    disabled: int
+
+
+class PipedreamIntegrationConfig(_Model):
+    app_slug: str
+    app_name: str | None = None
+    app_icon: str | None = None
+    server_url: str
+
+
+class PipedreamIntegration(_Model):
+    id: str
+    channel_type: str
+    config: PipedreamIntegrationConfig
+
+
+class IntegrationAuthConfig(TypedDict, total=False):
+    token: str
+    api_key: str
+    header_name: str
+    username: str
+    password: str
+
+
+class ToolResponseMapping(TypedDict, total=False):
+    path: str
+    success_message: str
+    error_message: str
+
+
+class CustomApiConfigureBody(TypedDict):
+    name: str
+    description: NotRequired[str]
+    base_url: NotRequired[str]
+    auth_type: NotRequired[IntegrationAuthType]
+    auth_config: NotRequired[IntegrationAuthConfig]
+    test_endpoint: NotRequired[str]
+
+
+class ParameterDefinition(TypedDict):
+    name: str
+    type: ParameterType
+    description: str
+    required: NotRequired[bool]
+    items: NotRequired[ParameterDefinition]
+    properties: NotRequired[dict[str, Any]]
+
+
+class CustomApiCreateToolBody(TypedDict):
+    name: str
+    http_method: ToolHttpMethod
+    url_template: str
+    description: NotRequired[str]
+    url_params: NotRequired[list[ParameterDefinition]]
+    body_params: NotRequired[list[ParameterDefinition]]
+    headers_template: NotRequired[dict[str, Any]]
+    body_template: NotRequired[dict[str, Any]]
+    auth_type: NotRequired[IntegrationAuthType]
+    auth_config: NotRequired[dict[str, Any]]
+    response_mapping: NotRequired[ToolResponseMapping]
+    category: NotRequired[str]
+    require_human_approval: NotRequired[bool]
+    timeout: NotRequired[int]
+
+
+class McpServerConfigureBody(TypedDict):
+    name: str
+    server_url: str
+    transport: NotRequired[McpServerTransport]
+    auth_type: NotRequired[IntegrationAuthType]
+    auth_config: NotRequired[IntegrationAuthConfig]
+
+
+class PipedreamConfigureBody(TypedDict):
+    app_slug: str
+    app_name: NotRequired[str]
+    app_icon: NotRequired[str]

@@ -106,6 +106,34 @@ client.agents.channels.list(agent_id)
 client.agents.actions.list(agent_id)
 ```
 
+The integrations sub-resource is also writable through four connector families, each with `list`, `configure`, and `disconnect`. First-party connectors (`bimpeai`) and `pipedream` return an `OnboardingUrl` to finish setup in the dashboard; `custom_api` carries a `tools` sub-resource and `mcp_server` adds `discover` and `test`. The `configure` calls take the body as keyword arguments; `custom_api.tools.add` takes a single dict so its larger body stays well typed.
+
+```python
+client.agents.integrations.bimpeai.configure(
+    agent_id, type="stripe", public_key="pk_…", secret_key="sk_…", currency="NGN"
+)
+
+api = client.agents.integrations.custom_api.configure(
+    agent_id, name="Shop", base_url="https://api.example.com/v1"
+)
+client.agents.integrations.custom_api.tools.add(
+    agent_id, api.id, {"name": "Create order", "http_method": "POST", "url_template": "/orders"}
+)
+
+mcp = client.agents.integrations.mcp_server.configure(
+    agent_id, name="MR Guild", server_url="https://mrguild.com/api/mcp"
+)
+client.agents.integrations.mcp_server.discover(agent_id, mcp.id)
+
+client.agents.integrations.pipedream.configure(agent_id, app_slug="google-sheets")
+```
+
+Fetch the agent's test code and the per-channel deep links that start a test conversation with `get_test_code`.
+
+```python
+test_code = client.agents.get_test_code(agent_id)
+```
+
 Enable or disable a set of agent actions in bulk by id. Both take `action_ids` as a keyword argument and return a `BulkActionUpdate` with the `updated_count`.
 
 ```python
@@ -200,6 +228,30 @@ detail = client.calls.retrieve(agent_id, result.call_id)
 
 `list` returns a `Page[Call]`. `make` takes a `MakeCallBody` dict (`destination` and `is_test_call`) and returns a `MakeCallResult`, whose `status` is `"initiated" | "busy" | "failed"`, with optional `call_id` and `detail`. `retrieve` returns a `CallDetail`, which is a `Call` plus `started_at`, `answered_at`, and the `conversation_logs`.
 
+## Phone numbers
+
+Phone numbers are team-scoped. You request a number, and once one is assigned you link it to an agent.
+
+```python
+# Request a number for provisioning (fulfilled by BimpeAI).
+client.phone_numbers.requests.create(
+    business_name="Acme Support Ltd",
+    intended_use="Inbound customer support",
+    region="ng",
+    agent_count=1,
+    outbound_minutes=500,
+)
+for request in client.phone_numbers.requests.list():
+    print(request.e164)
+
+# List assignments, then link one to an agent and label it.
+numbers = client.phone_numbers.list()
+detail = client.phone_numbers.retrieve(numbers.data[0].id)
+client.phone_numbers.update(detail.id, agent_id=agent_id, label="Support line")
+```
+
+`list` and `requests.list` return a `Page[PhoneNumber]` (`id`, `agent_id`, `label`, `e164`). `requests.create` takes the request fields as keyword arguments (`business_name`, `intended_use`, `region` of `"us" | "uk" | "eu" | "ng"`, `agent_count`, `outbound_minutes`, and optional `submitted_by_agent_id`) and returns `None`. `retrieve` and `update` return a `PhoneNumberDetail`, which is a `PhoneNumber` plus `created_at`, `updated_at`, and `inbound_enabled`. `update` takes `agent_id` (pass `None` to unassign) and `label` as keyword arguments. A number linked to an agent is the live telephony channel that `calls.make` dials out over when `is_test_call` is `False`.
+
 ## Pagination
 
 Every `list` returns a `Page` (or `AsyncPage` on the async client). A page carries the items for the current page in `data`, the `meta` block, and the `request_id` of the response that produced it. The `meta` is a `PaginationMeta` with `total_count`, `page_count`, `current_page`, `limit`, `has_next_page`, and `has_previous_page`.
@@ -285,7 +337,7 @@ client.agents.create(
 
 ## Per-call options
 
-The write methods that take options (`agents.create`, `agents.update_live_status`, `agents.actions.enable`, `agents.actions.disable`, `agents.knowledge_bases.create`, `workflows.create`, `workflows.clone`, `conversations.send`, `conversations.set_ai_status`, `conversations.messages.send`, `conversations.messages.stream_ticket`, and `calls.make`) accept `idempotency_key`, `timeout`, `max_retries`, and `headers` as keyword arguments alongside the body. Each overrides the client-level setting for that one call. `headers` is merged into the request headers, which is the seam for sending a request id you control through `X-Request-Id`.
+The write methods that take options (`agents.create`, `agents.update_live_status`, `agents.actions.enable`, `agents.actions.disable`, `agents.knowledge_bases.create`, the `agents.integrations` connector `configure` methods, `agents.integrations.custom_api.tools.add`, `workflows.create`, `workflows.clone`, `conversations.send`, `conversations.set_ai_status`, `conversations.messages.send`, `conversations.messages.stream_ticket`, `calls.make`, `phone_numbers.update`, and `phone_numbers.requests.create`) accept `idempotency_key`, `timeout`, `max_retries`, and `headers` as keyword arguments alongside the body. Each overrides the client-level setting for that one call. `headers` is merged into the request headers, which is the seam for sending a request id you control through `X-Request-Id`.
 
 ## Configuration
 
