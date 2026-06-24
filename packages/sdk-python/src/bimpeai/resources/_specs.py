@@ -36,6 +36,10 @@ def update_agent_spec(agent_id: str, body: dict[str, Any]) -> RequestSpec:
     return RequestSpec(method="PATCH", path=f"/agents/{agent_id}", body=dict(body))
 
 
+def delete_agent_spec(agent_id: str) -> RequestSpec:
+    return RequestSpec(method="DELETE", path=f"/agents/{agent_id}")
+
+
 def update_live_status_spec(
     agent_id: str, body: dict[str, Any], options: RequestOptions
 ) -> RequestSpec:

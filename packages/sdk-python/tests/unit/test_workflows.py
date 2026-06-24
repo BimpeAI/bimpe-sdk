@@ -68,6 +68,36 @@ def test_list_forwards_scope_and_returns_full_workflow() -> None:
     }
 
 
+def test_list_tolerates_server_placeholder_collections() -> None:
+    # The live server returns setup_steps as a list of empty lists, and some
+    # workflows carry empty-list placeholders inside flows/rules. None of that
+    # may fail validation of the whole workflow.
+    raw: dict[str, Any] = {
+        **_workflow("w_3"),
+        "setup_steps": [[], [], []],
+        "flows": [{"name": "Menu Browsing", "category": "commerce"}, [], []],
+        "rules": [
+            {"id": "r1", "name": "R", "trigger": "t", "response": "resp", "enabled": True},
+            [],
+        ],
+    }
+    wf = Workflows(FakeSync([raw])).list(scope="public").data[0]
+    assert isinstance(wf, Workflow)
+    assert wf.setup_steps == [[], [], []]
+    assert len(wf.flows) == 1 and wf.flows[0].name == "Menu Browsing"
+    assert len(wf.rules) == 1 and wf.rules[0].id == "r1"
+
+
+def test_list_tolerates_rule_missing_enabled() -> None:
+    # A dict rule that omits enabled (and other fields) must parse rather than
+    # fail validation of the whole workflow — only id is guaranteed on a Rule.
+    raw: dict[str, Any] = {**_workflow("w_4"), "rules": [{"id": "r1", "name": "Partial"}]}
+    wf = Workflows(FakeSync([raw])).list(scope="public").data[0]
+    assert wf.rules[0].id == "r1"
+    assert wf.rules[0].enabled is None
+    assert wf.rules[0].response is None
+
+
 def test_create_posts_body_and_returns_workflow() -> None:
     client = FakeSync(_workflow("w_1"))
     wf = Workflows(client).create(

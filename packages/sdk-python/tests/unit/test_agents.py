@@ -142,6 +142,13 @@ def test_update_sends_patch_body() -> None:
     assert spec.body == {"name": "New"}
 
 
+def test_delete_sends_delete_and_returns_none() -> None:
+    client = FakeSync({"data": None})
+    out = Agents(client).delete("a_1")
+    assert out is None
+    assert client.specs[-1] == RequestSpec(method="DELETE", path="/agents/a_1")
+
+
 def test_update_live_status_patches_live_status_path() -> None:
     client = FakeSync({"status": "live", "status_reason": "launched"})
     out = Agents(client).update_live_status("a_1", status="live", status_reason="launched")
@@ -330,3 +337,10 @@ async def test_async_update_live_status() -> None:
     assert spec.method == "PATCH"
     assert spec.path == "/agents/a_1/live-status"
     assert spec.body == {"status": "paused"}
+
+
+async def test_async_delete() -> None:
+    client = FakeAsync({"data": None})
+    out = await AsyncAgents(client).delete("a_1")
+    assert out is None
+    assert client.specs[-1] == RequestSpec(method="DELETE", path="/agents/a_1")

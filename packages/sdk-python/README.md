@@ -90,7 +90,7 @@ detail = client.agents.retrieve(agent.id)
 client.agents.update(agent.id, description="Now tier 2 as well")
 ```
 
-`list` returns a `Page[Agent]`. `create` takes the agent fields as keyword arguments where `workflow_id`, `name`, and `description` are required, plus the optional `language`, `persona`, `timezone`, `logo`, the `business_*` fields, and `escalation_email`; it returns an `AgentCreateResponse`, which is an `Agent` plus the nested `workflow`. `update` takes the same fields, all optional, and returns an `Agent`. `persona` is the enum `"professional" | "friendly" | "concise"`. `retrieve` returns an `AgentDetail`, which is an `Agent` plus the agent's knowledge bases, integrations, and channels inlined.
+`list` returns a `Page[Agent]`. `create` takes the agent fields as keyword arguments where `workflow_id`, `name`, and `description` are required, plus the optional `language`, `persona`, `timezone`, `logo`, the `business_*` fields, and `escalation_email`; it returns an `AgentCreateResponse`, which is an `Agent` plus the nested `workflow`. `update` takes the same fields, all optional, and returns an `Agent`. `persona` is the enum `"professional" | "friendly" | "concise"`. `retrieve` returns an `AgentDetail`, which is an `Agent` plus the agent's knowledge bases, integrations, and channels inlined. `delete` removes the agent permanently and returns `None`.
 
 Move an agent between its lifecycle states with `update_live_status`. The `status` is `"development" | "live" | "paused"`, and `status_reason` is optional. It returns an `AgentLiveStatus`.
 

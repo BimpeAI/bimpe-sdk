@@ -50,6 +50,7 @@ EXPECTED_ALL = [
     "PermissionDeniedError",
     "PhoneNumber",
     "PhoneNumberDetail",
+    "PhoneNumberRequest",
     "PipedreamIntegration",
     "RateLimitError",
     "Rule",

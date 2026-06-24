@@ -53,7 +53,7 @@ from .types.conversations import (
     StreamMessageEvent,
     StreamTicket,
 )
-from .types.phone_numbers import PhoneNumber, PhoneNumberDetail
+from .types.phone_numbers import PhoneNumber, PhoneNumberDetail, PhoneNumberRequest
 from .types.workflows import Workflow, WorkflowDetail, WorkflowSummary
 
 __all__ = [
@@ -103,6 +103,7 @@ __all__ = [
     "PermissionDeniedError",
     "PhoneNumber",
     "PhoneNumberDetail",
+    "PhoneNumberRequest",
     "PipedreamIntegration",
     "RateLimitError",
     "Rule",
