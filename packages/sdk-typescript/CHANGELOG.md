@@ -1,5 +1,13 @@
 # @bimpeai/sdk
 
+## 0.3.0
+
+### Minor Changes
+
+- [#12](https://github.com/BimpeAI/bimpe-sdk/pull/12) [`ffd8e40`](https://github.com/BimpeAI/bimpe-sdk/commit/ffd8e404a00b8f901d5e38219efd50d42cdb3eb7) Thanks [@Theshedman](https://github.com/Theshedman)! - Add the agent integrations subsystem and the test-code endpoint. `agents.getTestCode` returns the agent's test code and the per-channel deep links used to start a test conversation. `agents.integrations` becomes writable through four connector families, each with `list`, `configure`, and `disconnect`: `bimpeai` for first-party connectors (Google Calendar, Stripe, Paystack, Google Sheets, Bumpa), `customApi` for custom HTTP APIs with a nested `tools` sub-resource, `mcpServer` for MCP servers with `discover`, `test`, and a `tools` listing, and `pipedream` for OAuth onboarding. The existing read-only `integrations.list` is unchanged.
+
+- [#12](https://github.com/BimpeAI/bimpe-sdk/pull/12) [`b4f5b50`](https://github.com/BimpeAI/bimpe-sdk/commit/b4f5b500e7ebed53296d5088237456e433f993b5) Thanks [@Theshedman](https://github.com/Theshedman)! - Add a team-scoped `phoneNumbers` resource. `phoneNumbers.list`, `retrieve`, and `update` manage number assignments (linking a number to an agent and labelling it), and a nested `phoneNumbers.requests.list`/`create` lists and submits provisioning requests. A number linked to an agent is the live telephony channel that `calls.make({ is_test_call: false })` dials out over.
+
 ## 0.2.0
 
 ### Minor Changes
