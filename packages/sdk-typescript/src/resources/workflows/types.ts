@@ -51,7 +51,7 @@ export interface Workflow {
   readonly actions: readonly string[] | null;
   readonly guide: WorkflowGuide | null;
   readonly faq: readonly WorkflowFaq[] | null;
-  readonly setup_steps: readonly (string | Record<string, unknown>)[];
+  readonly setup_steps: readonly unknown[];
   readonly setup_time: number | null;
   readonly video_url: string | null;
   readonly created_at: string;
@@ -76,7 +76,7 @@ export interface CreateWorkflowBody {
   actions?: string[];
   guide?: WorkflowGuide;
   faq?: WorkflowFaq[];
-  setup_steps?: (string | Record<string, unknown>)[];
+  setup_steps?: unknown[];
   setup_time?: number;
   video_url?: string;
 }

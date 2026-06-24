@@ -47,7 +47,7 @@ const detail = await bimpe.agents.retrieve(agent.id);
 await bimpe.agents.update(agent.id, { description: 'Updated' });
 ```
 
-`list` returns a `PagePromise<Agent>`. `create` takes `CreateAgentBody` (`workflow_id`, `name`, and `description` are required) and returns an `AgentCreateResponse`, which is an `Agent` plus the nested `workflow`; `update` takes a partial `UpdateAgentBody` and returns an `Agent`. `persona` is the enum `'professional' | 'friendly' | 'concise'`. `retrieve` returns an `AgentDetail`, which is an `Agent` plus the agent's knowledge bases, integrations, and channels inlined. Only `create` accepts per-call `RequestOptions`.
+`list` returns a `PagePromise<Agent>`. `create` takes `CreateAgentBody` (`workflow_id`, `name`, and `description` are required) and returns an `AgentCreateResponse`, which is an `Agent` plus the nested `workflow`; `update` takes a partial `UpdateAgentBody` and returns an `Agent`. `persona` is the enum `'professional' | 'friendly' | 'concise'`. `retrieve` returns an `AgentDetail`, which is an `Agent` plus the agent's knowledge bases, integrations, and channels inlined. `delete` removes the agent permanently and resolves to `void`. Only `create` accepts per-call `RequestOptions`.
 
 Move an agent between its lifecycle states with `updateLiveStatus`. The `status` is `'development' | 'live' | 'paused'`, and `status_reason` is optional.
 

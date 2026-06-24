@@ -105,4 +105,11 @@ describe('Agents resource', () => {
       body: { name: 'New' },
     });
   });
+
+  it('delete() DELETEs /agents/{id} and resolves to void', async () => {
+    const requestImpl = vi.fn().mockResolvedValue(okResponse(null));
+    const result = await makeAgents(requestImpl).delete('a_1');
+    expect(result).toBeUndefined();
+    expect(requestImpl).toHaveBeenCalledWith({ method: 'DELETE', path: '/agents/a_1' });
+  });
 });

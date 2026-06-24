@@ -144,6 +144,7 @@ export type {
   PhoneNumber,
   PhoneNumberDetail,
   PhoneNumberRegion,
+  PhoneNumberRequest,
   UpdatePhoneNumberBody,
 } from './resources/phone-numbers';
 export { VERSION } from './version';
