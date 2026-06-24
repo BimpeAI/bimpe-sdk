@@ -63,6 +63,41 @@ await bimpe.agents.channels.list(agentId);
 await bimpe.agents.actions.list(agentId);
 ```
 
+The integrations sub-resource is also writable through four connector families, each with `list`, `configure`, and `disconnect`. First-party connectors (`bimpeai`) and `pipedream` return an `{ onboarding_url }` to finish setup in the dashboard; `customApi` carries a `tools` sub-resource and `mcpServer` adds `discover` and `test`.
+
+```ts
+await bimpe.agents.integrations.bimpeai.configure(agentId, {
+  type: 'stripe',
+  public_key: 'pk_…',
+  secret_key: 'sk_…',
+  currency: 'NGN',
+});
+
+const api = await bimpe.agents.integrations.customApi.configure(agentId, {
+  name: 'Shop',
+  base_url: 'https://api.example.com/v1',
+});
+await bimpe.agents.integrations.customApi.tools.add(agentId, api.id, {
+  name: 'Create order',
+  http_method: 'POST',
+  url_template: '/orders',
+});
+
+const mcp = await bimpe.agents.integrations.mcpServer.configure(agentId, {
+  name: 'MR Guild',
+  server_url: 'https://mrguild.com/api/mcp',
+});
+await bimpe.agents.integrations.mcpServer.discover(agentId, mcp.id);
+
+await bimpe.agents.integrations.pipedream.configure(agentId, { app_slug: 'google-sheets' });
+```
+
+Fetch the agent's test code and the per-channel deep links that start a test conversation with `getTestCode`.
+
+```ts
+const { code, channels } = await bimpe.agents.getTestCode(agentId);
+```
+
 Enable or disable a set of agent actions in bulk by id. Both take a `BulkActionIdsBody` and return a `BulkActionUpdate` with the `updated_count`.
 
 ```ts
@@ -275,7 +310,7 @@ await bimpe.agents.create(
 
 ## Per-call options
 
-The write methods that accept an `options` argument (`agents.create`, `agents.knowledgeBases.create`, `workflows.create`, `workflows.clone`, `conversations.send`, `conversations.setAiStatus`, `conversations.messages.send`, `calls.make`, `phoneNumbers.update`, `phoneNumbers.requests.create`, plus `streamTicket`) take a `RequestOptions`: `idempotencyKey`, `signal` (an `AbortSignal`), `timeout`, `maxRetries`, and `headers`. Each overrides the client-level setting for that one call, and `headers` is merged over the client's default headers.
+The write methods that accept an `options` argument (`agents.create`, `agents.knowledgeBases.create`, the `agents.integrations` connector `configure` methods, `agents.integrations.customApi.tools.add`, `workflows.create`, `workflows.clone`, `conversations.send`, `conversations.setAiStatus`, `conversations.messages.send`, `calls.make`, `phoneNumbers.update`, `phoneNumbers.requests.create`, plus `streamTicket`) take a `RequestOptions`: `idempotencyKey`, `signal` (an `AbortSignal`), `timeout`, `maxRetries`, and `headers`. Each overrides the client-level setting for that one call, and `headers` is merged over the client's default headers.
 
 ## Configuration
 
