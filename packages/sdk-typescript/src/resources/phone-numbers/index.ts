@@ -5,5 +5,6 @@ export type {
   PhoneNumber,
   PhoneNumberDetail,
   PhoneNumberRegion,
+  PhoneNumberRequest,
   UpdatePhoneNumberBody,
 } from './types';

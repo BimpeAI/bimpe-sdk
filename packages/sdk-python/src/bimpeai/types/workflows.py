@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from typing_extensions import NotRequired, TypedDict
 
 from .agents import Rule, RuleInput
@@ -63,11 +63,21 @@ class Workflow(_Model):
     actions: list[str] | None = None
     guide: WorkflowGuide | None = None
     faq: list[WorkflowFaq] | None = None
-    setup_steps: list[str | dict[str, Any]] = []
+    setup_steps: list[Any] = []
     setup_time: int | None = None
     video_url: str | None = None
     created_at: str
     updated_at: str
+
+    @field_validator("flows", "rules", "faq", mode="before")
+    @classmethod
+    def _drop_non_object_items(cls, value: Any) -> Any:
+        # The server occasionally emits empty-list placeholders inside these
+        # collections; drop anything that is not an object so a malformed entry
+        # can never fail validation of the whole workflow.
+        if not isinstance(value, list):
+            return value
+        return [item for item in cast("list[Any]", value) if isinstance(item, dict)]
 
 
 WorkflowDetail = Workflow
@@ -119,7 +129,7 @@ class CreateWorkflowBody(TypedDict):
     actions: NotRequired[list[str]]
     guide: NotRequired[WorkflowGuideInput]
     faq: NotRequired[list[WorkflowFaqInput]]
-    setup_steps: NotRequired[list[str | dict[str, Any]]]
+    setup_steps: NotRequired[list[Any]]
     setup_time: NotRequired[int]
     video_url: NotRequired[str]
 
@@ -137,7 +147,7 @@ class UpdateWorkflowBody(TypedDict, total=False):
     actions: list[str]
     guide: WorkflowGuideInput
     faq: list[WorkflowFaqInput]
-    setup_steps: list[str | dict[str, Any]]
+    setup_steps: list[Any]
     setup_time: int
     video_url: str
 

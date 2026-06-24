@@ -85,15 +85,26 @@ describe('PhoneNumbers resource', () => {
     });
   });
 
-  it('requests.list() GETs /phone-numbers/request and returns a Page', async () => {
-    const requestImpl = vi
-      .fn()
-      .mockResolvedValue(
-        okResponse([{ id: 'pn_2', agent_id: null, label: null, e164: '+15559999999' }], META),
-      );
+  it('requests.list() GETs /phone-numbers/request and returns pending requests without e164', async () => {
+    const requestImpl = vi.fn().mockResolvedValue(
+      okResponse(
+        [
+          {
+            id: 'pnr_1',
+            business_name: 'Acme Support Ltd',
+            region: 'ng',
+            status: 'under_review',
+            created_at: '2026-06-24T08:23:02.384Z',
+          },
+        ],
+        META,
+      ),
+    );
     const page = await make(requestImpl).requests.list();
     expect(page).toBeInstanceOf(Page);
-    expect(page.data[0]?.id).toBe('pn_2');
+    expect(page.data[0]?.id).toBe('pnr_1');
+    expect(page.data[0]?.e164).toBeUndefined();
+    expect(page.data[0]?.business_name).toBe('Acme Support Ltd');
     expect(requestImpl).toHaveBeenCalledWith({
       method: 'GET',
       path: '/phone-numbers/request',

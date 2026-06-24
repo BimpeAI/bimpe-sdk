@@ -61,6 +61,13 @@ export class Agents {
     return res.data;
   }
 
+  async delete(agentId: string): Promise<void> {
+    await this.client.request<null>({
+      method: 'DELETE',
+      path: `/agents/${agentId}`,
+    });
+  }
+
   async updateLiveStatus(
     agentId: string,
     body: UpdateLiveStatusBody,

@@ -8,6 +8,7 @@ from ..types.phone_numbers import (
     CreatePhoneNumberRequestBody,
     PhoneNumber,
     PhoneNumberDetail,
+    PhoneNumberRequest,
     UpdatePhoneNumberBody,
 )
 from ._specs import (
@@ -78,12 +79,12 @@ class _PhoneNumberRequests:
         limit: int | None = None,
         search: str | None = None,
         sort: str | None = None,
-    ) -> Page[PhoneNumber]:
-        def fetch(current: int) -> Page[PhoneNumber]:
+    ) -> Page[PhoneNumberRequest]:
+        def fetch(current: int) -> Page[PhoneNumberRequest]:
             resp = self._client.request(
                 list_phone_number_requests_spec(page=current, limit=limit, search=search, sort=sort)
             )
-            data = [PhoneNumber.model_validate(item) for item in resp.data]
+            data = [PhoneNumberRequest.model_validate(item) for item in resp.data]
             return Page(data=data, meta=resp.meta, request_id=resp.request_id, fetcher=fetch)
 
         return fetch(page)
@@ -165,12 +166,12 @@ class _AsyncPhoneNumberRequests:
         limit: int | None = None,
         search: str | None = None,
         sort: str | None = None,
-    ) -> AsyncPage[PhoneNumber]:
-        async def fetch(current: int) -> AsyncPage[PhoneNumber]:
+    ) -> AsyncPage[PhoneNumberRequest]:
+        async def fetch(current: int) -> AsyncPage[PhoneNumberRequest]:
             resp = await self._client.request(
                 list_phone_number_requests_spec(page=current, limit=limit, search=search, sort=sort)
             )
-            data = [PhoneNumber.model_validate(item) for item in resp.data]
+            data = [PhoneNumberRequest.model_validate(item) for item in resp.data]
             return AsyncPage(data=data, meta=resp.meta, request_id=resp.request_id, fetcher=fetch)
 
         return await fetch(page)

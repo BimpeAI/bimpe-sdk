@@ -17,13 +17,16 @@ class _Model(BaseModel):
 
 
 class Rule(_Model):
+    # Only `id` is guaranteed. The rest are optional so a workflow carrying a
+    # partially-populated rule (e.g. one created without `enabled`) can never
+    # fail validation of the whole workflow on read-back.
     id: str
-    name: str
-    trigger: str
+    name: str | None = None
+    trigger: str | None = None
     condition: str | None = None
-    response: str
+    response: str | None = None
     action: str | None = None
-    enabled: bool
+    enabled: bool | None = None
 
 
 class IntegrationConfigField(_Model):

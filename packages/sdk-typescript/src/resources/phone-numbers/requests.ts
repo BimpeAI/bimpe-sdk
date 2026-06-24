@@ -1,11 +1,11 @@
 import { Page, PagePromise } from '../../core/pagination';
 import type { ListQuery, RequestExecutor, RequestOptions } from '../../core/types';
-import type { CreatePhoneNumberRequestBody, PhoneNumber } from './types';
+import type { CreatePhoneNumberRequestBody, PhoneNumberRequest } from './types';
 
 export class PhoneNumberRequests {
   constructor(private readonly client: RequestExecutor) {}
 
-  list(query: ListQuery = {}): PagePromise<PhoneNumber> {
+  list(query: ListQuery = {}): PagePromise<PhoneNumberRequest> {
     return new PagePromise(() => this.fetchPage(query.page ?? 1, query));
   }
 
@@ -18,13 +18,13 @@ export class PhoneNumberRequests {
     });
   }
 
-  private async fetchPage(page: number, query: ListQuery): Promise<Page<PhoneNumber>> {
-    const res = await this.client.request<PhoneNumber[]>({
+  private async fetchPage(page: number, query: ListQuery): Promise<Page<PhoneNumberRequest>> {
+    const res = await this.client.request<PhoneNumberRequest[]>({
       method: 'GET',
       path: '/phone-numbers/request',
       query: { page, limit: query.limit, search: query.search, sort: query.sort },
     });
-    return new Page<PhoneNumber>({
+    return new Page<PhoneNumberRequest>({
       data: res.data,
       meta: res.meta,
       requestId: res.requestId,

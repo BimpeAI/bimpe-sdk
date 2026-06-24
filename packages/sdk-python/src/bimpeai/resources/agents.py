@@ -47,6 +47,7 @@ from ._specs import (
     configure_pipedream_integration_spec,
     create_agent_spec,
     create_knowledge_base_spec,
+    delete_agent_spec,
     delete_custom_api_tool_spec,
     delete_knowledge_base_spec,
     disable_actions_spec,
@@ -123,6 +124,9 @@ class Agents:
     def update(self, agent_id: str, **body: Unpack[UpdateAgentBody]) -> Agent:
         resp = self._client.request(update_agent_spec(agent_id, dict(body)))
         return Agent.model_validate(resp.data)
+
+    def delete(self, agent_id: str) -> None:
+        self._client.request(delete_agent_spec(agent_id))
 
     def update_live_status(
         self,
@@ -489,6 +493,9 @@ class AsyncAgents:
     async def update(self, agent_id: str, **body: Unpack[UpdateAgentBody]) -> Agent:
         resp = await self._client.request(update_agent_spec(agent_id, dict(body)))
         return Agent.model_validate(resp.data)
+
+    async def delete(self, agent_id: str) -> None:
+        await self._client.request(delete_agent_spec(agent_id))
 
     async def update_live_status(
         self,

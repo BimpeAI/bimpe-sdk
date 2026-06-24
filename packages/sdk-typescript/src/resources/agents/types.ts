@@ -1,13 +1,14 @@
 import type { WorkflowDetail } from '../workflows/types';
 
 export interface Rule {
+  // Only `id` is guaranteed; a workflow may carry a partially-populated rule.
   readonly id: string;
-  readonly name: string;
-  readonly trigger: string;
+  readonly name: string | null;
+  readonly trigger: string | null;
   readonly condition: string | null;
-  readonly response: string;
+  readonly response: string | null;
   readonly action: string | null;
-  readonly enabled: boolean;
+  readonly enabled: boolean | null;
 }
 
 export interface RuleInput {
