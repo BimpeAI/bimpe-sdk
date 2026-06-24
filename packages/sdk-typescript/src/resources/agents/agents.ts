@@ -9,6 +9,7 @@ import type {
   AgentCreateResponse,
   AgentDetail,
   AgentLiveStatus,
+  AgentTestCode,
   CreateAgentBody,
   UpdateAgentBody,
   UpdateLiveStatusBody,
@@ -70,6 +71,14 @@ export class Agents {
       path: `/agents/${agentId}/live-status`,
       body,
       ...options,
+    });
+    return res.data;
+  }
+
+  async getTestCode(agentId: string): Promise<AgentTestCode> {
+    const res = await this.client.request<AgentTestCode>({
+      method: 'GET',
+      path: `/agents/${agentId}/deployment/agent-test-code`,
     });
     return res.data;
   }
