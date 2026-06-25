@@ -75,7 +75,7 @@ export class Messages {
     const client = this.client;
     const issueTicket = (signal?: AbortSignal) =>
       this.streamTicket(agentId, conversationId, signal ? { signal } : {});
-    const streamPath = `/agents/${agentId}/conversations/${conversationId}/messages/stream`;
+    const streamPath = `/agents/${agentId}/conversations/${conversationId}/stream`;
     const reconnect = options.reconnect !== false;
     const maxRetries = options.maxRetries ?? DEFAULT_STREAM_RETRIES;
 

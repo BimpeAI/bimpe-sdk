@@ -381,7 +381,7 @@ describe('HttpClient — stream', () => {
       );
     const c = new HttpClient({ apiKey: 'sk_test', fetch: fetchMock as unknown as typeof fetch });
     await c.stream({
-      path: '/agents/a_1/conversations/cv_1/messages/stream',
+      path: '/agents/a_1/conversations/cv_1/stream',
       query: { ticket: 't1' },
     });
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
