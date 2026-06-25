@@ -98,7 +98,7 @@ Move an agent between its lifecycle states with `update_live_status`. The `statu
 client.agents.update_live_status(agent_id, status="live", status_reason="Launch")
 ```
 
-The read-only sub-resources each return a plain list.
+The read-only sub-resources each return a plain list. `channels.list` returns `AgentChannel` items (`id`, `type`, `name`, `status`, `is_connected`), where `type` is the channel kind, such as `whatsapp`, `instagram`, `messenger`, `webchat`, `voice`, or `telephony`.
 
 ```python
 client.agents.integrations.list(agent_id)
