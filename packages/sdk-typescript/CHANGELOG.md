@@ -1,5 +1,11 @@
 # @bimpeai/sdk
 
+## 0.4.1
+
+### Patch Changes
+
+- [#17](https://github.com/BimpeAI/bimpe-sdk/pull/17) [`73bb7e6`](https://github.com/BimpeAI/bimpe-sdk/commit/73bb7e69b7782ddd2f5fb741fffd05ac632f33f2) Thanks [@Theshedman](https://github.com/Theshedman)! - Fix the conversation message stream path. The SSE endpoint moved from `.../conversations/{id}/messages/stream` to `.../conversations/{id}/stream`; `conversations.messages.stream` now targets the new path, so streaming connects instead of returning a 404. This mirrors the same one-line path fix in the Python SDK.
+
 ## 0.4.0
 
 ### Minor Changes
