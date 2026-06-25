@@ -4,7 +4,7 @@ import { BimpeAI, RateLimitError } from '../../src';
 import { API_BASE, createMswServer } from '../helpers/msw-server';
 
 const TICKET_PATH = `${API_BASE}/agents/:agentId/conversations/:conversationId/stream-ticket`;
-const STREAM_PATH = `${API_BASE}/agents/:agentId/conversations/:conversationId/messages/stream`;
+const STREAM_PATH = `${API_BASE}/agents/:agentId/conversations/:conversationId/stream`;
 
 const encoder = new TextEncoder();
 
