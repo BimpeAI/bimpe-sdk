@@ -117,7 +117,7 @@ def _stream_ticket_spec(
 
 
 def _stream_path(agent_id: str, conversation_id: str) -> str:
-    return f"/agents/{agent_id}/conversations/{conversation_id}/messages/stream"
+    return f"/agents/{agent_id}/conversations/{conversation_id}/stream"
 
 
 def _parse_stream_message(data: str) -> StreamMessageEvent | None:

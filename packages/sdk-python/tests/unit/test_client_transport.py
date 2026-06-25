@@ -113,13 +113,13 @@ def test_timeout_maps_to_api_timeout() -> None:
 
 @respx.mock
 def test_stream_open_sets_event_stream_and_omits_auth() -> None:
-    route = respx.get(f"{BASE}/agents/a_1/conversations/c_1/messages/stream").mock(
+    route = respx.get(f"{BASE}/agents/a_1/conversations/c_1/stream").mock(
         return_value=httpx.Response(
             200, content=b"data: x\n\n", headers={"content-type": "text/event-stream"}
         )
     )
     with make().stream(
-        StreamSpec(path="/agents/a_1/conversations/c_1/messages/stream", query={"ticket": "t1"})
+        StreamSpec(path="/agents/a_1/conversations/c_1/stream", query={"ticket": "t1"})
     ) as response:
         list(response.iter_bytes())
     req = route.calls.last.request
