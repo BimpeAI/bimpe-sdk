@@ -64,7 +64,7 @@ describe('Messages.stream', () => {
     expect(ids).toEqual(['m_1', 'm_2']);
     expect(stream).toHaveBeenCalledWith(
       expect.objectContaining({
-        path: '/agents/a_1/conversations/cv_1/messages/stream',
+        path: '/agents/a_1/conversations/cv_1/stream',
         query: { ticket: 't1' },
       }),
     );

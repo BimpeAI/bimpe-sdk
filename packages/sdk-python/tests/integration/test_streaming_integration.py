@@ -5,7 +5,7 @@ from bimpeai import AsyncBimpeAI, BimpeAI
 
 BASE = "https://api.bimpe.ai/api/v1/console"
 TICKET = f"{BASE}/agents/a_1/conversations/c_1/stream-ticket"
-STREAM = f"{BASE}/agents/a_1/conversations/c_1/messages/stream"
+STREAM = f"{BASE}/agents/a_1/conversations/c_1/stream"
 
 EVENTS = (
     b'id: m_1\nevent: message\ndata: {"id":"m_1","conversation_id":"c_1","role":"user","message":"hi","message_type":"text","created_at":"t"}\n\n'  # noqa: E501

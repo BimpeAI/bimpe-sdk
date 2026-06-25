@@ -55,7 +55,7 @@ Move an agent between its lifecycle states with `updateLiveStatus`. The `status`
 await bimpe.agents.updateLiveStatus(agent.id, { status: 'live', status_reason: 'Launch' });
 ```
 
-The read-only sub-resources each return an array, not a page.
+The read-only sub-resources each return an array, not a page. `channels.list` returns `AgentChannel` items (`id`, `type`, `name`, `status`, `is_connected`), where `type` is the channel kind, such as `whatsapp`, `instagram`, `messenger`, `webchat`, `voice`, or `telephony`.
 
 ```ts
 await bimpe.agents.integrations.list(agentId);
